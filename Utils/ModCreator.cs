@@ -26,88 +26,57 @@ namespace ModAPI.Utils
 
         public static void Execute(Context ctxt)
         {
-            /*try
-            {*/
             var context = new PrivateContext(ctxt);
-            context.Project.Configuration.MethodReplaces.Clear();
-            context.Project.Configuration.MethodHookAfter.Clear();
-            context.Project.Configuration.MethodHookBefore.Clear();
-            context.Project.Configuration.MethodChain.Clear();
-
-            var libraries = context.Project.Game.ModLibrary.Libraries;
-            var baseModLibPath = Path.Combine(context.Project.Game.ModLibrary.LibraryDirectory, "BaseModLib.dll");
-            if (!File.Exists(baseModLibPath))
-                throw new Exception("BaseModLib wasn't found");
-
-            var c = 0;
-            context.ProgressHandler.ChangeProgress("Loading mod library assemblies (1/" + (libraries.Count + 1) + ")...", 0f);
-            context.BaseModLib = AssemblyDefinition.ReadAssembly(baseModLibPath);
-            context.InitializeBaseModLib();
-            c++;
-
-            context.ProgressHandler.ChangeProgress("Loading mod library assemblies (2/" + (libraries.Count + 1) + ")...", 0f);
-            foreach (var library in libraries)
+            try
             {
-                var assembly = library.LoadAssembly();
-             
-                context.Assemblies[assembly.FullName] = assembly;
-                foreach (var type in assembly.MainModule.Types)
+                context.Project.Configuration.MethodReplaces.Clear();
+                context.Project.Configuration.MethodHookAfter.Clear();
+                context.Project.Configuration.MethodHookBefore.Clear();
+                context.Project.Configuration.MethodChain.Clear();
+                context.LoadModLibrary();
+
+                var c = 0;
+
+                var resolver = new DefaultAssemblyResolver();
+                resolver.AddSearchDirectory(context.Project.Game.ModLibrary.LibraryDirectory);
+                var readerParameters = new ReaderParameters()
                 {
-                    ParseType(context, type);
+                    AssemblyResolver = resolver,
+                    ReadWrite = true
+                };
+                var modAssembly = AssemblyDefinition.ReadAssembly(Path.Combine(context.Project.Directory, context.Project.Configuration.Name + ".dll"), readerParameters);
+                foreach (var type in modAssembly.MainModule.Types)
+                {
+                    ParseModType(context, type);
                 }
-                c++;
-                context.ProgressHandler.ChangeProgress("Loading mod library assemblies (" + (c + 2) + "/" + (libraries.Count + 1) + ")...", 0.5f * ((float)c / (float)(libraries.Count + 1)));
-            }
 
-            var resolver = new DefaultAssemblyResolver();
-            resolver.AddSearchDirectory(context.Project.Game.ModLibrary.LibraryDirectory);
-            var readerParameters = new ReaderParameters()
-            {
-                AssemblyResolver = resolver,
-                ReadWrite = true
-            };
-            var modAssembly = AssemblyDefinition.ReadAssembly(Path.Combine(context.Project.Directory, context.Project.Configuration.Name + ".dll"), readerParameters);
-            foreach (var type in modAssembly.MainModule.Types)
-            {
-                ParseModType(context, type);
-            }
+                context.ProgressHandler.ChangeProgress("Loading mod library assemblies...", 0.02f);
 
-            context.ProgressHandler.ChangeProgress("Loading mod library assemblies...", 0.02f);
-            
-            for (var i = 0; i < modAssembly.MainModule.Resources.Count; i++)
-            {
-                var resource = modAssembly.MainModule.Resources[i];
-                if (resource.ResourceType == ResourceType.Embedded && resource.Name == "ModConfiguration")
+                for (var i = 0; i < modAssembly.MainModule.Resources.Count; i++)
                 {
-                    Logger.Warn("There is already a resource called ModConfiguration. Removing it.");
-                    modAssembly.MainModule.Resources.RemoveAt(i);
-                    i--;
+                    var resource = modAssembly.MainModule.Resources[i];
+                    if (resource.ResourceType == ResourceType.Embedded && resource.Name == "ModConfiguration")
+                    {
+                        Logger.Warn("There is already a resource called ModConfiguration. Removing it.");
+                        modAssembly.MainModule.Resources.RemoveAt(i);
+                        i--;
+                    }
+                }
+
+                modAssembly.MainModule.Resources.Add(new EmbeddedResource("ModConfiguration", ManifestResourceAttributes.Public, System.Text.Encoding.UTF8.GetBytes(context.Project.Configuration.ToJSON(true).ToString())));
+                modAssembly.Write(Path.Combine(context.Project.Directory, "Output.dll"));
+                modAssembly.Dispose();
+
+                foreach (var assembly in context.Assemblies)
+                {
+                    assembly.Value.Dispose();
                 }
             }
-            /*
-            for (var i = 0; i < modAssembly.MainModule.AssemblyReferences.Count; i++)
+            catch (Exception ex)
             {
-                if (modAssembly.MainModule.AssemblyReferences[i].Name == "netstandard")
-                {
-                    modAssembly.MainModule.AssemblyReferences.RemoveAt(i);
-                    i--;
-                }
-            }*/
-            modAssembly.MainModule.Resources.Add(new EmbeddedResource("ModConfiguration", ManifestResourceAttributes.Public, System.Text.Encoding.UTF8.GetBytes(context.Project.Configuration.ToJSON(true).ToString())));
-            //modAssembly.MainModule.Kind = ModuleKind.NetModule;
-            //modAssembly.Name.Attributes.HasFlag(AssemblyAttributes.WindowsRuntime)
-            modAssembly.Write(Path.Combine(context.Project.Directory, "Output.dll"));
-            modAssembly.Dispose();
-
-            foreach (var assembly in context.Assemblies)
-            {
-                assembly.Value.Dispose();
+                Logger.Error(ex, "Error while creating mod.");
+                context.ProgressHandler.Error(ex.Message);
             }
-            /*}
-            catch (Exception e)
-            {
-
-            }*/
         }
 
         private static void ParseModType(PrivateContext context, TypeDefinition type)
@@ -347,19 +316,6 @@ namespace ModAPI.Utils
 
                                 method.Body.Optimize();
                             }
-                            if (method.ReturnType.FullName != "System.Void")
-                            {
-                                //var delegateName = 
-                                /*var func = context.AllTypes["System.Func´" + (method.Parameters.Count + 1)];
-                                var g = new TypeReference[method.Parameters.Count + 1];
-                                for (var i = 0; i < method.Parameters.Count; i++)
-                                {
-                                    method.Parameters[i].ParameterType
-                                }
-                                func.MakeGenericInstanceType();
-                                method.Parameters.Add(new ParameterDefinition("__modapi_next_method", ParameterAttributes.None, method.Module.ImportReference(funcType)));*/
-                            }
-                        
                         }
                         if (injectionType == Injection.Type.Replace)
                             context.Project.Configuration.MethodReplaces.Add(methodName);
@@ -414,17 +370,6 @@ namespace ModAPI.Utils
             }
         }
 
-        private static Dictionary<string, TypeDefinition> GetCorlibClasses(PrivateContext context, ModuleDefinition module, List<string> names)
-        {
-            var ret = new Dictionary<string, TypeDefinition>();
-            foreach (var n in names)
-            {
-                if (context.AllTypes.ContainsKey(n))
-                    ret.Add(n, context.AllTypes[n]);
-            }
-            return ret;
-        }
-
         private static void __ExtendRouteToBaseCall(PrivateContext context, TypeDefinition type, CallStack.Node node, CallStackCopyContext routeContext, CallStackCopyScopeContext scope)
         {
             var module = type.Module;
@@ -439,6 +384,7 @@ namespace ModAPI.Utils
                     ReplaceMethodCallWithNextCall(node.Method, routeContext.Delegate, scope.DisplayClass.ChainMethodsField, scope.DisplayClass.ChainNumField, node.Instruction);
                 }
             }
+            // method called is in a display class or is a compiler generated method
             else if (node.CalledMethod.Name.StartsWith("<") && !node.CalledMethod.Name.StartsWith("<>n__"))
             {
                 if (node.CalledMethod.DeclaringType.FullName == type.FullName) // method
@@ -458,10 +404,8 @@ namespace ModAPI.Utils
                         else
                         {
                             // create a new display class
-
-                            var mscorlibTypes = GetCorlibClasses(context, module, new List<string>() { "System.Runtime.CompilerServices.CompilerGeneratedAttribute", "System.Object" });
-                            var objectType = mscorlibTypes["System.Object"];
-                            var compilerGeneratedAttributeConstructor = mscorlibTypes["System.Runtime.CompilerServices.CompilerGeneratedAttribute"].Methods.First(m => m.IsConstructor);
+                            var objectType = context.AllTypes["System.Object"];
+                            var compilerGeneratedAttributeConstructor = context.AllTypes["System.Runtime.CompilerServices.CompilerGeneratedAttribute"].Methods.First(m => m.IsConstructor);
 
                             routeContext.HighestDisplayClassNum++;
                             routeContext.HighestDisplayClassSub = 0;
@@ -827,203 +771,6 @@ namespace ModAPI.Utils
             }
         }
 
-
-        public class CallStackCopyContext
-        {
-            public Dictionary<string, string> ClassMappings = new();
-            public Dictionary<string, string> MethodMappings = new();
-            public Dictionary<string, DisplayClass> DisplayClasses = new();
-            public Dictionary<string, MethodDefinition> Methods = new();
-            public MonoHelper.Delegate Delegate;
-            public int HighestDisplayClassNum;
-            public int HighestDisplayClassSub;
-        }
-
-        public class CallStackCopyScopeContext
-        {
-            public enum TypeEnum
-            {
-                DISPLAY_CLASS,
-                METHOD
-            }
-            public TypeEnum Type;
-            public DisplayClass DisplayClass;
-            public MethodDefinition Method;
-            public ParameterDefinition NumParam;
-            public ParameterDefinition ChainParam;
-            public CallStackCopyScopeContext Parent;
-            public string OriginalName;
-        }
-
-        public class DisplayClass
-        {
-            public TypeDefinition Type;
-            public MethodDefinition Constructor;
-            public Dictionary<string, MethodDefinition> Methods = new();
-            public Dictionary<string, FieldDefinition> Fields = new();
-            public FieldDefinition ThisField;
-            public FieldDefinition ChainNumField;
-            public FieldDefinition ChainMethodsField;
-            public int HighestSub = -1;
-
-            public DisplayClass()
-            {
-
-            }
-            public DisplayClass(TypeDefinition type)
-            {
-                Type = type;
-                for (var i = 0; i < type.Methods.Count; i++)
-                {
-                    if (type.Methods[i].IsConstructor)
-                        Constructor = type.Methods[i];
-                    else
-                        Methods.Add(type.Methods[i].Name, type.Methods[i]);
-                }
-                for (var i = 0; i < type.Fields.Count; i++)
-                {
-                    Fields.Add(type.Fields[i].Name, type.Fields[i]);
-                    if (type.Fields[i].Name == "<>4__this")
-                    {
-                        ThisField = type.Fields[i];
-                        ThisField.Name = "self";
-                    }
-                    else if (type.Fields[i].Name == "self")
-                        ThisField = type.Fields[i];
-                    else if (type.Fields[i].Name == "__ModAPI_chain_methods")
-                        ChainMethodsField = type.Fields[i];
-                    else if (type.Fields[i].Name == "__ModAPI_chain_num")
-                        ChainNumField = type.Fields[i];
-                }
-            }
-
-            public DisplayClass Copy(TypeDefinition parent, CallStackCopyContext context)
-            {
-                var module = Type.Module;
-
-                var @delegate = context.Delegate;
-                //var match = Regex.Match(Type.Name, @"\<\>c__DisplayClass([0-9]+)_([0-9]+)");
-                //var sub = int.Parse(match.Groups[2].Value);
-                var newName = "<>c__DisplayClass" + context.HighestDisplayClassNum + "_" + context.HighestDisplayClassSub;
-                var newClass = new TypeDefinition(Type.Namespace, newName, Type.Attributes);
-                parent.NestedTypes.Add(newClass);
-
-                var newFields = new Dictionary<string, FieldDefinition>();
-                FieldDefinition thisField = null;
-                for (var j = 0; j < Type.Fields.Count; j++)
-                {
-                    var field = Type.Fields[j];
-                    var newField = new FieldDefinition(field.Name, field.Attributes, field.FieldType);
-                    if (newField.Name == "<>4__this" || newField.Name == "self")
-                    {
-                        newField.Name = "self";
-                        thisField = newField;
-                    }
-                    //if (classMapping.ContainsKey(original[i].Fields[j].FieldType.Name))
-                    //    newField.FieldType = module.ImportReference(newClasses[classMapping[original[i].Fields[j].FieldType.Name]].Type);
-                    newClass.Fields.Add(newField);
-                    newFields.Add(newField.Name, newField);
-                }
-                    
-                var numField = new FieldDefinition("__ModAPI_chain_num", FieldAttributes.Public, module.TypeSystem.Int32);    
-                var chainField = new FieldDefinition("__ModAPI_chain_methods", FieldAttributes.Public, module.ImportReference(@delegate.Type.MakeArrayType()));
-                newFields.Add("__ModAPI_chain_num", numField);
-                newFields.Add("__ModAPI_chain_methods", chainField);
-                newClass.Fields.Add(numField);
-                newClass.Fields.Add(chainField);
-
-                if (thisField == null)
-                {
-                    thisField = new FieldDefinition("self", FieldAttributes.Public, module.ImportReference(parent));
-                    newFields.Add("self", thisField);
-                    newClass.Fields.Add(thisField);
-                }
-
-                var newMethods = new Dictionary<string, MethodDefinition>();
-                MethodDefinition constructor = null;
-                var highestSub = 0;
-                for (var j = 0; j < Type.Methods.Count; j++)
-                {
-                    var method = Type.Methods[j];
-                    var match = Regex.Match(method.Name, @"\<([^\>]+)\>b__([0-9]+)");
-                    if (match.Success)
-                    {
-                        var s = int.Parse(match.Groups[2].Value);
-                        if (s > highestSub)
-                            s = highestSub;
-                        var newMethod = new MethodDefinition(method.Name, method.Attributes, method.ReturnType);
-                        method.Body.Copy(newMethod.Body);
-                        newMethods.Add(newMethod.Name, newMethod);
-                        newClass.Methods.Add(newMethod);
-
-                        if (context != null)
-                        {
-                            context.MethodMappings.Add(method.FullName, newMethod.FullName);
-                            context.Methods.Add(newMethod.FullName, newMethod);
-                        }
-                    }
-                    if (method.Name == ".ctor")
-                    {
-                        var newMethod = new MethodDefinition(method.Name, method.Attributes, method.ReturnType);
-                        method.Body.Copy(newMethod.Body);
-                        constructor = newMethod;
-                        newClass.Methods.Add(newMethod);
-                    }
-                }
-
-                foreach (var m in newMethods)
-                {
-                    var body = m.Value.Body;
-                    for (var i = 0; i < body.Instructions.Count; i++)
-                    {
-                        var inst = body.Instructions[i];
-                        if (inst.Operand is FieldReference fieldRef && newFields.ContainsKey(fieldRef.Name))
-                            inst.Operand = module.ImportReference(newFields[fieldRef.Name]);
-                        if (inst.Operand is MethodReference methodRef && newMethods.ContainsKey(methodRef.Name))
-                            inst.Operand = module.ImportReference(newMethods[methodRef.Name]);
-                    }
-                }
-                var displayClass = new DisplayClass()
-                {
-                    Type = newClass,
-                    HighestSub = highestSub,
-                    Constructor = constructor,
-                    Fields = newFields,
-                    Methods = newMethods,
-                    ChainMethodsField = chainField,
-                    ChainNumField = numField,
-                    ThisField = thisField
-                };
-
-                return displayClass;
-            }
-
-            public void Resolve(CallStackCopyContext context)
-            {
-                foreach (var field in Fields)
-                {
-                    if (context.ClassMappings.ContainsKey(field.Value.FieldType.Name))
-                        field.Value.FieldType = Type.Module.ImportReference(context.DisplayClasses[context.ClassMappings[field.Value.FieldType.Name]].Type);
-                }
-                foreach (var method in Methods)
-                {
-                    var body = method.Value.Body;
-                    for (var j = 0; j < body.Instructions.Count; j++)
-                    {
-                        var instruction = body.Instructions[j];
-                        if (instruction.Operand is MethodReference mref)
-                        {
-                            if (context.MethodMappings.ContainsKey(mref.FullName))
-                                instruction.Operand = method.Value.Module.ImportReference(context.Methods[context.MethodMappings[mref.FullName]]);
-                            else if (mref.Name == ".ctor" && context.ClassMappings.ContainsKey(mref.DeclaringType.Name))
-                                instruction.Operand = method.Value.Module.ImportReference(context.DisplayClasses[context.ClassMappings[mref.DeclaringType.Name]].Constructor);
-                        }
-                    }
-                }
-            }
-
-        }
-
         private static void ReplaceMethodCallWithNextCall(MethodDefinition method, MonoHelper.Delegate @delegate, FieldDefinition chain, FieldDefinition num, Instruction instruction)
         {
             var processor = method.Body.GetILProcessor();
@@ -1062,44 +809,6 @@ namespace ModAPI.Utils
             processor.InsertBefore(instruction, processor.Create(OpCodes.Add));
 
             instruction.Operand = method.DeclaringType.Module.ImportReference(@delegate.Invoke);
-        }
-
-        private static void ParseType(PrivateContext context, TypeDefinition type)
-        {
-            if (type.BaseType != null && type.BaseType.FullName == "System.MulticastDelegate" && type.HasCustomAttributes && type.CustomAttributes[0].Constructor.DeclaringType.FullName == "ModAPI.MethodName" && !context.Delegates.ContainsKey((string)type.CustomAttributes[0].ConstructorArguments[0].Value))
-            {
-                context.Delegates.Add((string)type.CustomAttributes[0].ConstructorArguments[0].Value, new MonoHelper.Delegate(type));
-            }
-            var typeName = type.FullName;
-            if (!context.AllTypes.ContainsKey(typeName))
-                context.AllTypes.Add(typeName, type);
-            /*else
-                Logger.Warn("Type \"" + typeName + "\" was already added.");*/
-
-            foreach (var nestedType in type.NestedTypes)
-                ParseType(context, nestedType);
-
-            foreach (var method in type.Methods)
-            {
-                var name = method.FullName;
-                if (context.AllMethods.ContainsKey(name))
-                    context.AllMethods.Add(name, method);
-                /*else
-                    Logger.Warn("Method with name \"" + name + "\" was already added.");*/
-
-/*                if (context.AllMethods.ContainsKey(method.FullName))
-                    context.AllMethods.Add(method.FullName, method);
-                else
-                    Logger.Warn("Method with name \"" + method.FullName + "\" was already added.");*/
-            }
-            foreach (var property in type.Properties)
-            {
-                var name = property.FullName;
-                if (context.AllProperties.ContainsKey(name))
-                    context.AllProperties.Add(name, property);
-                /*else
-                    Logger.Warn("Property with name \"" + name + "\" was already added.");*/
-            }
         }
     }
 }
