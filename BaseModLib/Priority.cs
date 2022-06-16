@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace BaseModLib
+namespace ModAPI
 {
     /**
      * Defines which priority your method has for daisy chaining overridden methods.

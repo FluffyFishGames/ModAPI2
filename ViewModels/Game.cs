@@ -85,7 +85,7 @@ namespace ModAPI.ViewModels
                 if (_ImageIcon == null)
                 {
                     var assets = AvaloniaLocator.Current.GetService<IAssetLoader>();
-                    var bitmap = new Bitmap(assets.Open(new Uri("avares://ModAPIAvalonia/Resources/" + ID + "/icon.png")));
+                    var bitmap = new Bitmap(assets.Open(new Uri("avares://ModAPI2/Resources/" + ID + "/icon.png")));
                     _ImageIcon = bitmap;
                 }
                 return _ImageIcon;
@@ -100,7 +100,7 @@ namespace ModAPI.ViewModels
                 if (_Banner == null)
                 {
                     var assets = AvaloniaLocator.Current.GetService<IAssetLoader>();
-                    var bitmap = new Bitmap(assets.Open(new Uri("avares://ModAPIAvalonia/Resources/" + ID + "/banner.png")));
+                    var bitmap = new Bitmap(assets.Open(new Uri("avares://ModAPI2/Resources/" + ID + "/banner.png")));
                     _Banner = bitmap;
                 }
                 return _Banner;

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace BaseModLib
+namespace ModAPI
 {
     /**
      * Decorates your method to be run when a certain level is loaded.

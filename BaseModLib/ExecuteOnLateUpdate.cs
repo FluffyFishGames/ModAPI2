@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace BaseModLib
+namespace ModAPI
 {
     /**
      * Only use this if necessary. The better way to achieve this functionality is to create your own MonoBehaviour class and add it to the

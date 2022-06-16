@@ -14,7 +14,7 @@ using System.Text.RegularExpressions;
 
 namespace ModAPI.Utils
 {
-    internal class ModCreator
+    internal partial class ModCreator
     {
         private static NLog.ILogger Logger = NLog.LogManager.GetLogger("ModCreator");
 
@@ -22,103 +22,6 @@ namespace ModAPI.Utils
         {
             public ModProject Project;
             public ProgressHandler ProgressHandler;
-        }
-
-
-        private class PrivateContext : Context
-        {
-            public ModProject Project;
-            public ProgressHandler ProgressHandler;
-            public Dictionary<string, AssemblyDefinition> Assemblies = new Dictionary<string, AssemblyDefinition>();
-            public Dictionary<string, TypeDefinition> AllTypes = new Dictionary<string, TypeDefinition>();
-            public Dictionary<string, MonoHelper.Delegate> Delegates = new Dictionary<string, MonoHelper.Delegate>();
-            public Dictionary<string, MethodDefinition> AllMethods = new Dictionary<string, MethodDefinition>();
-            public Dictionary<string, PropertyDefinition> AllProperties = new Dictionary<string, PropertyDefinition>();
-            public AssemblyDefinition BaseModLib;
-            public Dictionary<string, TypeDefinition> BaseModLibTypes = new Dictionary<string, TypeDefinition>();
-            public Dictionary<string, MethodDefinition> AttributeConstructors = new Dictionary<string, MethodDefinition>();
-            public TypeDefinition InjectionTypeType;
-            public const int InjectionChain = 0;
-            public const int InjectionHookBefore = 1;
-            public const int InjectionHookAfter = 2;
-            public const int InjectionReplace = 3;
-            private static List<string> BaseModLibAttributes = new List<string>(){ "ModAPI.ExecuteOnApplicationQuit", "ModAPI.ExecuteOnApplicationStart", "ModAPI.ExecuteOnFixedUpdate", "ModAPI.ExecuteOnLateUpdate", "ModAPI.ExecuteOnLevelLoad", "ModAPI.ExecuteOnUpdate", "ModAPI.Injection", "ModAPI.ModAPI", "ModAPI.Priority"};
-
-            public PrivateContext(Context context)
-            {
-                Project = context.Project;
-                ProgressHandler = context.ProgressHandler;
-            }
-
-            public void InitializeBaseModLib()
-            {
-                foreach (var type in BaseModLib.MainModule.Types)
-                {
-                    BaseModLibTypes.Add(type.FullName, type);
-                }
-                foreach (var attribute in BaseModLibAttributes)
-                {
-                    if (!BaseModLibTypes.ContainsKey(attribute))
-                        throw new Exception("BaseModLib is incomplete. Reinstall ModAPI.");
-                    foreach (var m in BaseModLibTypes[attribute].Methods)
-                    {
-                        if (m.IsConstructor)
-                            AttributeConstructors[attribute] = m;
-                    }
-                }
-                foreach (var nestedType in BaseModLibTypes["ModAPI.Injection"].NestedTypes)
-                {
-                    if (nestedType.Name == "Type")
-                    {
-                        InjectionTypeType = nestedType;
-                        break;
-                    }
-                }
-                if (InjectionTypeType == null)
-                    throw new Exception("BaseModLib is incomplete. Reinstall ModAPI.");
-            }
-
-            public List<MethodDefinition> FindBaseMethods(string typeName, string methodName)
-            {
-                var ret = new List<MethodDefinition>();
-                while (typeName != null)
-                {
-                    if (AllTypes.ContainsKey(typeName))
-                    {
-                        var baseType = AllTypes[typeName];
-                        foreach (var m in baseType.Methods)
-                        {
-                            if (m.Name == methodName)
-                                ret.Add(m);
-                        }
-                        if (baseType.BaseType != null)
-                            typeName = baseType.BaseType.FullName;
-                        else
-                            break;
-                    }
-                    else break;
-                }
-                return ret;
-            }
-
-            public List<string> GetAllAssignableTypes(TypeDefinition type)
-            {
-                List<string> ret = new List<string>();
-                ret.Add(type.FullName);
-                foreach (var @interface in type.Interfaces)
-                {
-                    if (AllTypes.ContainsKey(@interface.InterfaceType.FullName))
-                        GetAllAssignableTypes(AllTypes[@interface.InterfaceType.FullName]);
-                    else ret.Add(@interface.InterfaceType.FullName);
-                }
-                if (type.BaseType != null)
-                {
-                    if (AllTypes.ContainsKey(type.BaseType.FullName))
-                        GetAllAssignableTypes(AllTypes[type.BaseType.FullName]);
-                    else ret.Add(type.BaseType.FullName);
-                }
-                return ret;
-            }
         }
 
         public static void Execute(Context ctxt)
@@ -438,18 +341,8 @@ namespace ModAPI.Utils
                                 var numParam = new ParameterDefinition("__modapi_chain_num", ParameterAttributes.None, method.Module.TypeSystem.Int32);
                                 method.Parameters.Add(chainParam);
                                 method.Parameters.Add(numParam);
-                                /*
-                                for (var i = 0; i < method.Body.Instructions.Count; i++)
-                                {
-                                    var instruction = method.Body.Instructions[i];
-                                    if (instruction.OpCode == OpCodes.Call && (instruction.Operand as MethodReference).FullName == baseMethod.FullName)
-                                    {
-                                        ReplaceMethodCallWithNextCall(method, chainParam, numParam, instruction, @delegate);
-                                        i += 7;
-                                    }
-                                }*/
 
-                                var routes = GetRoutesToBaseCall(type, method, baseMethod);
+                                var routes = CallStack.FindCallsTo(method, baseMethod);
                                 ExtendRoutesToBaseCall(context, type, routes, method, chainParam, numParam, @delegate, highestDisplayClass);
 
                                 method.Body.Optimize();
@@ -502,119 +395,21 @@ namespace ModAPI.Utils
             }
         }
 
-        private static List<RouteNode> GetRoutesToBaseCall(TypeDefinition type, MethodDefinition method, MethodReference baseMethod)
-        {
-            var ret = new List<RouteNode>();
-            __GetRoutesToBaseCall(type, method, baseMethod, null, ret);
-            for (var i = 0; i < ret.Count; i++)
-            {
-                var r = ret[i];
-                r.Clean();
-                if (!r.ContainsBaseCall())
-                {
-                    ret.RemoveAt(i);
-                    i--;
-                }
-            }
-            return ret;
-        }
-
-        class RouteNode
-        {
-            public RouteNode Parent;
-            public List<RouteNode> Children = new();
-            public MethodDefinition CalledMethod;
-            public MethodDefinition Method;
-            public Instruction Instruction;
-            public NodeType Type;
-            public enum NodeType
-            {
-                Method,
-                BaseCall
-            }
-
-            public void Clean()
-            {
-                for (var i = 0; i < Children.Count; i++)
-                {
-                    if (!Children[i].ContainsBaseCall())
-                        Children.RemoveAt(i);
-                    else Children[i].Clean();
-                }
-            }
-
-            public bool ContainsBaseCall()
-            {
-                if (Type == NodeType.BaseCall)
-                    return true;
-                for (var i = 0; i < Children.Count; i++)
-                {
-                    if (Children[i].ContainsBaseCall())
-                        return true;
-                }
-                return false;
-            }
-        }
-
-        private static void __GetRoutesToBaseCall(TypeDefinition type, MethodDefinition method, MethodReference baseMethod, RouteNode parent, List<RouteNode> ret)
-        {
-            var module = type.Module;
-            var body = method.Body;
-            if (body == null) return;
-            for (var i = 0; i < body.Instructions.Count; i++)
-            {
-                var instruction = body.Instructions[i];
-                if (instruction.Operand is MethodReference mref)
-                {
-                    if (instruction.OpCode == OpCodes.Call && mref.FullName == baseMethod.FullName)
-                    {
-                        var node = new RouteNode()
-                        {
-                            Method = method,
-                            Instruction = instruction,
-                            Parent = parent,
-                            Type = RouteNode.NodeType.BaseCall
-                        };
-                        if (parent == null)
-                            ret.Add(node);
-                        else
-                            parent.Children.Add(node);
-                    }
-                    else if ((instruction.OpCode == OpCodes.Ldftn || instruction.OpCode == OpCodes.Call) && mref.Module.Name == module.Name)
-                    {
-                        var methodDef = mref.Resolve();
-                        var node = new RouteNode()
-                        {
-                            Method = method,
-                            CalledMethod = methodDef,
-                            Instruction = instruction,
-                            Parent = parent,
-                            Type = RouteNode.NodeType.Method
-                        };
-                        if (parent == null)
-                            ret.Add(node);
-                        else
-                            parent.Children.Add(node);
-                        __GetRoutesToBaseCall(type, methodDef, baseMethod, node, ret);
-                    }
-                }
-            }
-        }
-        private static void ExtendRoutesToBaseCall(PrivateContext context, TypeDefinition type, List<RouteNode> routes, MethodDefinition method, ParameterDefinition chainParam, ParameterDefinition numParam, MonoHelper.Delegate @delegate, int highestDisplayClass)
+        private static void ExtendRoutesToBaseCall(PrivateContext context, TypeDefinition type, List<CallStack.Node> routes, MethodDefinition method, ParameterDefinition chainParam, ParameterDefinition numParam, MonoHelper.Delegate @delegate, int highestDisplayClass)
         {
             foreach (var route in routes)
             {
-                __ExtendRouteToBaseCall(context, type, route, new RouteCopyContext()
+                __ExtendRouteToBaseCall(context, type, route, new CallStackCopyContext()
                 {
                     Delegate = @delegate,
                     HighestDisplayClassNum = highestDisplayClass
                 }, 
-                new RouteCopyScopeContext()
+                new CallStackCopyScopeContext()
                 {
                     ChainParam = chainParam,
                     NumParam = numParam,
                     Method = method,
-                    Type = RouteCopyScopeContext.TypeEnum.METHOD
+                    Type = CallStackCopyScopeContext.TypeEnum.METHOD
                 });
             }
         }
@@ -630,16 +425,16 @@ namespace ModAPI.Utils
             return ret;
         }
 
-        private static void __ExtendRouteToBaseCall(PrivateContext context, TypeDefinition type, RouteNode node, RouteCopyContext routeContext, RouteCopyScopeContext scope)
+        private static void __ExtendRouteToBaseCall(PrivateContext context, TypeDefinition type, CallStack.Node node, CallStackCopyContext routeContext, CallStackCopyScopeContext scope)
         {
             var module = type.Module;
-            if (node.Type == RouteNode.NodeType.BaseCall)
+            if (node.Type == CallStack.Node.NodeType.Call)
             {
-                if (scope.Type == RouteCopyScopeContext.TypeEnum.METHOD)
+                if (scope.Type == CallStackCopyScopeContext.TypeEnum.METHOD)
                 {
                     ReplaceMethodCallWithNextCall(node.Method, routeContext.Delegate, scope.ChainParam, scope.NumParam, node.Instruction);
                 }
-                else if (scope.Type == RouteCopyScopeContext.TypeEnum.DISPLAY_CLASS)
+                else if (scope.Type == CallStackCopyScopeContext.TypeEnum.DISPLAY_CLASS)
                 {
                     ReplaceMethodCallWithNextCall(node.Method, routeContext.Delegate, scope.DisplayClass.ChainMethodsField, scope.DisplayClass.ChainNumField, node.Instruction);
                 }
@@ -648,7 +443,7 @@ namespace ModAPI.Utils
             {
                 if (node.CalledMethod.DeclaringType.FullName == type.FullName) // method
                 {
-                    if (scope.Type == RouteCopyScopeContext.TypeEnum.METHOD)
+                    if (scope.Type == CallStackCopyScopeContext.TypeEnum.METHOD)
                     {
                         MethodDefinition newMethod = null;
                         DisplayClass displayClass = null;
@@ -762,9 +557,9 @@ namespace ModAPI.Utils
                             displayClass.Type.Methods.Add(newMethod);
                         }
 
-                        var newScope = new RouteCopyScopeContext()
+                        var newScope = new CallStackCopyScopeContext()
                         {
-                            Type = RouteCopyScopeContext.TypeEnum.DISPLAY_CLASS,
+                            Type = CallStackCopyScopeContext.TypeEnum.DISPLAY_CLASS,
                             DisplayClass = displayClass
                         };
 
@@ -774,40 +569,36 @@ namespace ModAPI.Utils
                             __ExtendRouteToBaseCall(context, type, n, routeContext, newScope);
                         }
 
-                        if (node.Type == RouteNode.NodeType.Method)
-                        {
-                            var body = node.Method.Body;
-                            body.SimplifyMacros();
+                        var body = node.Method.Body;
+                        body.SimplifyMacros();
 
-                            var displayClassVar = new VariableDefinition(module.ImportReference(displayClass.Type));
-                            body.Variables.Insert(0, displayClassVar);
-                            var processor = body.GetILProcessor();
+                        var displayClassVar = new VariableDefinition(module.ImportReference(displayClass.Type));
+                        body.Variables.Insert(0, displayClassVar);
+                        var processor = body.GetILProcessor();
 
-                            var first = body.Instructions[0];
-                            processor.InsertBefore(first, processor.Create(OpCodes.Newobj, module.ImportReference(displayClass.Constructor)));
-                            processor.InsertBefore(first, processor.Create(OpCodes.Stloc, displayClassVar));
-                            processor.InsertBefore(first, processor.Create(OpCodes.Ldloc, displayClassVar));
-                            processor.InsertBefore(first, processor.Create(OpCodes.Ldarg_0));
-                            processor.InsertBefore(first, processor.Create(OpCodes.Stfld, module.ImportReference(displayClass.ThisField)));
+                        var first = body.Instructions[0];
+                        processor.InsertBefore(first, processor.Create(OpCodes.Newobj, module.ImportReference(displayClass.Constructor)));
+                        processor.InsertBefore(first, processor.Create(OpCodes.Stloc, displayClassVar));
+                        processor.InsertBefore(first, processor.Create(OpCodes.Ldloc, displayClassVar));
+                        processor.InsertBefore(first, processor.Create(OpCodes.Ldarg_0));
+                        processor.InsertBefore(first, processor.Create(OpCodes.Stfld, module.ImportReference(displayClass.ThisField)));
 
-                            processor.InsertBefore(first, processor.Create(OpCodes.Ldloc, displayClassVar));
-                            processor.InsertBefore(first, processor.Create(OpCodes.Ldarg, scope.NumParam));
-                            processor.InsertBefore(first, processor.Create(OpCodes.Stfld, module.ImportReference(displayClass.ChainNumField)));
+                        processor.InsertBefore(first, processor.Create(OpCodes.Ldloc, displayClassVar));
+                        processor.InsertBefore(first, processor.Create(OpCodes.Ldarg, scope.NumParam));
+                        processor.InsertBefore(first, processor.Create(OpCodes.Stfld, module.ImportReference(displayClass.ChainNumField)));
 
-                            processor.InsertBefore(first, processor.Create(OpCodes.Ldloc, displayClassVar));
-                            processor.InsertBefore(first, processor.Create(OpCodes.Ldarg, scope.ChainParam));
-                            processor.InsertBefore(first, processor.Create(OpCodes.Stfld, module.ImportReference(displayClass.ChainMethodsField)));
+                        processor.InsertBefore(first, processor.Create(OpCodes.Ldloc, displayClassVar));
+                        processor.InsertBefore(first, processor.Create(OpCodes.Ldarg, scope.ChainParam));
+                        processor.InsertBefore(first, processor.Create(OpCodes.Stfld, module.ImportReference(displayClass.ChainMethodsField)));
 
-                            var inst = node.Instruction;
-                            inst.Previous.OpCode = OpCodes.Ldloc;
-                            inst.Previous.Operand = displayClassVar;
-                            inst.Operand = module.ImportReference(newMethod);
+                        var inst = node.Instruction;
+                        inst.Previous.OpCode = OpCodes.Ldloc;
+                        inst.Previous.Operand = displayClassVar;
+                        inst.Operand = module.ImportReference(newMethod);
 
-                            body.Optimize();
-                            //processor.InsertBefore(, processor.Create(OpCodes.Ldloc, displayClassVar));
-                        }
+                        body.Optimize();
                     }
-                    else if (scope.Type == RouteCopyScopeContext.TypeEnum.DISPLAY_CLASS)
+                    else if (scope.Type == CallStackCopyScopeContext.TypeEnum.DISPLAY_CLASS)
                     {
                         MethodDefinition newMethod = null;
                         /*if (routeContext.MethodMappings.ContainsKey(node.CalledMethod.FullName))
@@ -887,7 +678,7 @@ namespace ModAPI.Utils
                     }
                     else 
                     {
-                        if (scope.Type == RouteCopyScopeContext.TypeEnum.METHOD)
+                        if (scope.Type == CallStackCopyScopeContext.TypeEnum.METHOD)
                         {
                             routeContext.HighestDisplayClassNum++;
                             routeContext.HighestDisplayClassSub = 0;
@@ -900,7 +691,7 @@ namespace ModAPI.Utils
                         routeContext.DisplayClasses.Add(newDisplayClass.Type.FullName, newDisplayClass);
                     }
 
-                    bool sameDisplayClass = scope.Type == RouteCopyScopeContext.TypeEnum.DISPLAY_CLASS && newDisplayClass.Type.FullName == scope.DisplayClass.Type.FullName;
+                    bool sameDisplayClass = scope.Type == CallStackCopyScopeContext.TypeEnum.DISPLAY_CLASS && newDisplayClass.Type.FullName == scope.DisplayClass.Type.FullName;
                     //var newClasses = CopyDisplayClasses(type, classTypes[group], baseMethod, @delegate, ref highestDisplayClass);
 
                     var method = node.Method;
@@ -940,7 +731,7 @@ namespace ModAPI.Utils
 
                             if (!alreadyChanged)
                             {
-                                if (scope.Type == RouteCopyScopeContext.TypeEnum.METHOD)
+                                if (scope.Type == CallStackCopyScopeContext.TypeEnum.METHOD)
                                 {
                                     processor.InsertBefore(inst, processor.Create(OpCodes.Ldloc, variable));
                                     processor.InsertBefore(inst, processor.Create(OpCodes.Ldarg, scope.ChainParam));
@@ -949,7 +740,7 @@ namespace ModAPI.Utils
                                     processor.InsertBefore(inst, processor.Create(OpCodes.Ldarg, scope.NumParam));
                                     processor.InsertBefore(inst, processor.Create(OpCodes.Stfld, newDisplayClass.ChainNumField));
                                 }
-                                else if (scope.Type == RouteCopyScopeContext.TypeEnum.DISPLAY_CLASS && routeContext.HighestDisplayClassSub == 0) // will most likely never be true?
+                                else if (scope.Type == CallStackCopyScopeContext.TypeEnum.DISPLAY_CLASS && routeContext.HighestDisplayClassSub == 0) // will most likely never be true?
                                 {
                                     processor.InsertBefore(inst, processor.Create(OpCodes.Ldloc, variable));
                                     processor.InsertBefore(inst, processor.Create(OpCodes.Ldarg_0));
@@ -966,9 +757,9 @@ namespace ModAPI.Utils
                         body.Optimize();
                     }
 
-                    var newScope = new RouteCopyScopeContext()
+                    var newScope = new CallStackCopyScopeContext()
                     {
-                        Type = RouteCopyScopeContext.TypeEnum.DISPLAY_CLASS,
+                        Type = CallStackCopyScopeContext.TypeEnum.DISPLAY_CLASS,
                         DisplayClass = newDisplayClass,
                         OriginalName = displayClass.Type.FullName
                     };
@@ -1010,7 +801,7 @@ namespace ModAPI.Utils
 
                 var body = node.Method.Body;
                 var processor = body.GetILProcessor();
-                if (scope.Type == RouteCopyScopeContext.TypeEnum.DISPLAY_CLASS)
+                if (scope.Type == CallStackCopyScopeContext.TypeEnum.DISPLAY_CLASS)
                 {
                     processor.InsertBefore(node.Instruction, processor.Create(OpCodes.Ldarg_0));
                     processor.InsertBefore(node.Instruction, processor.Create(OpCodes.Ldfld, scope.DisplayClass.ChainMethodsField));
@@ -1019,9 +810,9 @@ namespace ModAPI.Utils
                 }
                 node.Instruction.Operand = module.ImportReference(newMethod);
 
-                var newScope = new RouteCopyScopeContext()
+                var newScope = new CallStackCopyScopeContext()
                 {
-                    Type = RouteCopyScopeContext.TypeEnum.METHOD,
+                    Type = CallStackCopyScopeContext.TypeEnum.METHOD,
                     ChainParam = chainParam,
                     NumParam = numParam,
                     Method = newMethod
@@ -1037,7 +828,7 @@ namespace ModAPI.Utils
         }
 
 
-        public class RouteCopyContext
+        public class CallStackCopyContext
         {
             public Dictionary<string, string> ClassMappings = new();
             public Dictionary<string, string> MethodMappings = new();
@@ -1048,7 +839,7 @@ namespace ModAPI.Utils
             public int HighestDisplayClassSub;
         }
 
-        public class RouteCopyScopeContext
+        public class CallStackCopyScopeContext
         {
             public enum TypeEnum
             {
@@ -1060,7 +851,7 @@ namespace ModAPI.Utils
             public MethodDefinition Method;
             public ParameterDefinition NumParam;
             public ParameterDefinition ChainParam;
-            public RouteCopyScopeContext Parent;
+            public CallStackCopyScopeContext Parent;
             public string OriginalName;
         }
 
@@ -1106,7 +897,7 @@ namespace ModAPI.Utils
                 }
             }
 
-            public DisplayClass Copy(TypeDefinition parent, RouteCopyContext context)
+            public DisplayClass Copy(TypeDefinition parent, CallStackCopyContext context)
             {
                 var module = Type.Module;
 
@@ -1207,7 +998,7 @@ namespace ModAPI.Utils
                 return displayClass;
             }
 
-            public void Resolve(RouteCopyContext context)
+            public void Resolve(CallStackCopyContext context)
             {
                 foreach (var field in Fields)
                 {
@@ -1231,136 +1022,6 @@ namespace ModAPI.Utils
                 }
             }
 
-        }
-        private static List<DisplayClass> CopyDisplayClasses(TypeDefinition type, List<TypeDefinition> original, MethodDefinition baseCall, MonoHelper.Delegate @delegate, ref int highestDisplayClassNum)
-        {
-            var module = type.Module;
-            var newClasses = new Dictionary<string, DisplayClass>(); // (TypeDefinition, MethodDefinition, Dictionary<string, FieldDefinition>, Dictionary<string, MethodDefinition>)
-            var mapping = new Dictionary<string, string>();
-            var classMapping = new Dictionary<string, string>();
-
-            for (var i = 0; i < original.Count; i++)
-            {
-                highestDisplayClassNum += 1;
-                var match = Regex.Match(original[i].Name, @"\<\>c__DisplayClass([0-9]+)_([0-9]+)");
-                var sub = int.Parse(match.Groups[2].Value);
-                var newName = "<>c__DisplayClass" + highestDisplayClassNum + "_" + sub;
-                classMapping.Add(original[i].Name, newName);
-
-                mapping.Add(original[i].Name, newName);
-                var newClass = new TypeDefinition(original[i].Namespace, "<>c__DisplayClass" + highestDisplayClassNum + "_" + sub, original[i].Attributes);
-                
-                var newFields = new Dictionary<string, FieldDefinition>();
-                for (var j = 0; j < original[i].Fields.Count; j++)
-                {
-                    var newField = new FieldDefinition(original[i].Fields[j].Name, original[i].Fields[j].Attributes, original[i].Fields[j].FieldType);
-                    if (classMapping.ContainsKey(original[i].Fields[j].FieldType.Name))
-                        newField.FieldType = module.ImportReference(newClasses[classMapping[original[i].Fields[j].FieldType.Name]].Type);
-                    newClass.Fields.Add(newField);
-                    newFields.Add(newField.Name, newField);
-                }
-                var numField = new FieldDefinition("__ModAPI_chain_num", FieldAttributes.Public, module.TypeSystem.Int32);
-                var chainField = new FieldDefinition("__ModAPI_chain_methods", FieldAttributes.Public, @delegate.Type.MakeArrayType());
-                newFields.Add("__ModAPI_chain_methods", chainField);
-                newFields.Add("__ModAPI_chain_num", numField);
-                newClass.Fields.Add(chainField);
-                newClass.Fields.Add(numField);
-
-                var newMethods = new Dictionary<string, MethodDefinition>();
-                MethodDefinition constructor = null;
-                for (var j = 0; j < original[i].Methods.Count; j++)
-                {
-                    var method = original[i].Methods[j];
-                    match = Regex.Match(method.Name, @"\<([^\>]+)\>b__([0-9]+)");
-                    if (match.Success)
-                    {
-                        var newMethod = new MethodDefinition("b__" + match.Groups[2].Value, method.Attributes, method.ReturnType);
-                        method.Body.Copy(newMethod.Body);
-                        newMethods.Add(newMethod.Name, newMethod);
-                        newClass.Methods.Add(newMethod);
-                    }
-                    if (method.Name == ".ctor")
-                    {
-                        var newMethod = new MethodDefinition(method.Name, method.Attributes, method.ReturnType);
-                        method.Body.Copy(newMethod.Body);
-                        constructor = newMethod;
-                        newClass.Methods.Add(newMethod);
-                    }
-                }
-                var displayClass = new DisplayClass()
-                {
-                    Type = newClass,
-                    Constructor = constructor,
-                    Fields = newFields,
-                    Methods = newMethods,
-                    ChainMethodsField = chainField,
-                    ChainNumField = numField
-                };
-                newClasses.Add(newName, displayClass);// (newClass, constructor, newFields, newMethods));
-
-                type.NestedTypes.Add(newClass);
-            }
-
-            var ret = new List<DisplayClass>();
-            foreach (var newClass in newClasses)
-            {
-                foreach (var method in newClass.Value.Methods)
-                {
-                    var body = method.Value.Body;
-                    body.SimplifyMacros();
-                    var processor = body.GetILProcessor();
-                    var myMethods = newClass.Value.ChainMethodsField;
-                    var myNum = newClass.Value.ChainNumField;
-
-                    for (var j = 0; j < body.Instructions.Count; j++)
-                    {
-                        if (body.Instructions[j].Operand is FieldReference fieldRef && mapping.ContainsKey(fieldRef.DeclaringType.Name))
-                            body.Instructions[j].Operand = module.ImportReference(newClasses[mapping[fieldRef.DeclaringType.Name]].Fields[fieldRef.Name]);
-                        if (body.Instructions[j].Operand is MethodReference methodRef)
-                        {
-                            if (mapping.ContainsKey(methodRef.DeclaringType.Name))
-                            {
-                                if (methodRef.FullName == baseCall.FullName)
-                                {
-                                    //ReplaceMethodCallWithNextCall(method.Value, myMethods, myNum, body.Instructions[j]);
-                                    /*var inst = body.Instructions[j];
-                                    processor.InsertBefore(inst, processor.Create(OpCodes.Ldfld, method.Value.Module.ImportReference(myMethods)));
-                                    processor.InsertBefore(inst, processor.Create(OpCodes.Ldfld, method.Value.Module.ImportReference(myNum)));
-                                    processor.InsertBefore(inst, processor.Create(OpCodes.Add));
-                                    processor.InsertBefore(inst, processor.Create(OpCodes.Ldc_I4_1));*/
-                                    j += 7;
-                                }
-                                else
-                                {
-                                    body.Instructions[j].Operand = module.ImportReference(newClasses[mapping[methodRef.DeclaringType.Name]].Methods[methodRef.Name]);
-                                    if (body.Instructions[j].OpCode == OpCodes.Newobj && methodRef.Name == ".ctor")
-                                    {
-                                        // next op is stloc
-                                        var storeVariable = (body.Instructions[j + 1].Operand as VariableDefinition);
-                                        var other = newClasses[mapping[methodRef.DeclaringType.Name]];
-                                        var otherMethods = other.ChainMethodsField;
-                                        var otherNum = other.ChainNumField;
-                                        var inst = body.Instructions[j + 2];
-                                        processor.InsertBefore(inst, processor.Create(OpCodes.Ldarg_0));
-                                        processor.InsertBefore(inst, processor.Create(OpCodes.Ldfld, module.ImportReference(myMethods)));
-                                        processor.InsertBefore(inst, processor.Create(OpCodes.Ldloc, storeVariable));
-                                        processor.InsertBefore(inst, processor.Create(OpCodes.Stfld, module.ImportReference(otherMethods)));
-                                        processor.InsertBefore(inst, processor.Create(OpCodes.Ldarg_0));
-                                        processor.InsertBefore(inst, processor.Create(OpCodes.Ldfld, module.ImportReference(myNum)));
-                                        processor.InsertBefore(inst, processor.Create(OpCodes.Ldloc, storeVariable));
-                                        processor.InsertBefore(inst, processor.Create(OpCodes.Stfld, module.ImportReference(otherNum)));
-                                        j += 8;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    body.Optimize();
-                }
-
-                ret.Add(newClass.Value);
-            }
-            return ret;
         }
 
         private static void ReplaceMethodCallWithNextCall(MethodDefinition method, MonoHelper.Delegate @delegate, FieldDefinition chain, FieldDefinition num, Instruction instruction)

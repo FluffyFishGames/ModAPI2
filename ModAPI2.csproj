@@ -106,7 +106,7 @@
     <PackageReference Include="NLog" Version="4.7.13" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ModAPI2.0\BaseModLib\BaseModLib.csproj" />
+    <ProjectReference Include="BaseModLib\BaseModLib.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Components\SidebarModItem.axaml.cs">
