@@ -5,6 +5,8 @@ Hi!
 Welcome to the GitHub repository of ModAPI 2.
 ModAPI 2 aims to bring modding to Unity (and also managed) games with some new paradigms like the ability to replace fields with properties and chaining methods with callstack-aware chain progression. You can find more information about how these systems work below.
 
+**This software is still in development!**
+
 # Paradigms
 
 ## Ease of use by overriding
@@ -12,7 +14,7 @@ ModAPI 2 aims to bring modding to Unity (and also managed) games with some new p
 All modding happens by creating a project and inheriting from original game types and overriding methods. In order for you to do so, ModAPI 2 will create a mod library which will open up all types and make all methods overrideable.
 
 A simple mod could look like this
-```
+```csharp
 public class MyMod : GameClass
 {
 	public override void SomeMethod()
@@ -29,7 +31,7 @@ public class MyMod : GameClass
 In order to be as versatile as possible ModAPI 2 offers you to override fields. The mod library will automatically replace all fields with properties. If you override one of these properties ModAPI 2 will change the field to a property in the game assemblies too.
 
 A simple field override looks like this:
-```
+```csharp
 public class MyMod : GameClass
 {
 	public override StringFunction responseText
@@ -49,7 +51,7 @@ public class MyMod : GameClass
 
 To make chaining as easy as possible ModAPI transpiles your code for you. Let's have a look at this example:
 
-```
+```csharp
 public class MyMod : GameClass
 {
 	public override StringFunction responseText
@@ -67,7 +69,7 @@ public class MyMod : GameClass
 This example uses a lambda-expression which will get heavily transpiled.
 
 ModAPI will create code which looks like this:
-```
+```csharp
 public class MyMod : GameClass
 {
 	[CompilerGenerated]
@@ -95,13 +97,13 @@ public class MyMod : GameClass
 			chain = chain,
 			num = num
 		};
-		displayClass.b__0();
+		return displayClass.b__0();
 	}
 }
 ```
 
 The original game method will be changed as follows:
-```
+```csharp
 public class GameClass
 {
 	public delegate StringFunction __ModAPI_get_responseText_Delegate(
@@ -140,11 +142,11 @@ As you can see ModAPI does a lot of work for you, so you can concentrate on what
 ## What about hooks?
 
 Some people prefer to use hooks and so ModAPI offers you to hook into methods. Let's take the following game method:
-```
+```csharp
 public int Test(int a);
 ```
 Let's create two hooks:
-```
+```csharp
 [ModAPI.Injection(InjectionType.HookBefore)]
 // note that the return type is void
 public override void Test(int a)
@@ -160,6 +162,17 @@ public override void Test(int a, ref int retValue)
 	// do something
 }
 ```
+
+# Todo
+
+[ ] Tidy up the mod creationg process
+[ ] Tidy up the mod application process
+[ ] Test and implement all possible callstack chain checks
+[ ] Add editable games configuration to support different games
+[ ] Add unity specific base packages and enable modding of non unity managed games
+[ ] Add micro IL patching with string dictionary support
+[ ] Add mod download site / Create new ModAPI page
+[ ] Testing, testing, testing...
 
 # License
 
