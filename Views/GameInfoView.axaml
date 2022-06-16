@@ -1,0 +1,35 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+			 xmlns:comps="using:ModAPI.Components"
+			 xmlns:material="using:Material.Icons.Avalonia"
+             x:Class="ModAPI.Views.GameInfoView">
+	<StackPanel Orientation="Vertical" Spacing="20">
+		<StackPanel Classes="Title">
+			<material:MaterialIcon Kind="GamepadVariant" />
+			<TextBlock Text="Game information"></TextBlock>
+		</StackPanel>
+		<Border Classes="Box">
+			<WrapPanel Orientation="Horizontal">
+				<StackPanel Classes="ValueWithLabel" Margin="0,0,20,0">
+					<TextBlock Text="Name" />
+					<TextBlock Text="{Binding Name}" />
+				</StackPanel>
+				<StackPanel Classes="ValueWithLabel" Margin="0,0,20,0">
+					<TextBlock Text="Developer" />
+					<TextBlock Text="{Binding Developer}" />
+				</StackPanel>
+				<StackPanel Classes="ValueWithLabel" Margin="0,0,20,0">
+					<TextBlock Text="Version" />
+					<TextBlock Text="{Binding Version}" />
+				</StackPanel>
+				<StackPanel Classes="ValueWithLabel" Margin="0,0,20,0">
+					<TextBlock Text="Unity version" />
+					<TextBlock Text="{Binding UnityVersion}" />
+				</StackPanel>
+			</WrapPanel>
+		</Border>
+	</StackPanel>
+</UserControl>

@@ -1,0 +1,26 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+			 xmlns:comps="using:ModAPI.Components"
+			 xmlns:material="using:Material.Icons.Avalonia"
+             x:Class="ModAPI.Views.ModProject.ModButtonView">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="2*" />
+            <ColumnDefinition Width="2*" />
+            <ColumnDefinition Width="8*" />
+            <ColumnDefinition Width="200" />
+            <ColumnDefinition Width="30" />
+        </Grid.ColumnDefinitions>
+        <comps:TextBox Grid.Column="0" Value="{Binding ID, Mode=TwoWay}" Label="ID" Margin="0,0,10,0" />
+		<comps:TextBox Grid.Column="1" Value="{Binding Name, Mode=TwoWay}" Label="Name" Margin="0,0,10,0" />
+		<comps:TextBox Grid.Column="2" Value="{Binding Description, Mode=TwoWay}" Label="Description" Margin="0,0,10,0" />
+		<comps:UnityButtonBox Grid.Column="3" Value="{Binding StandardMapping, Mode=TwoWay}" Label="Standard key" Margin="0,0,10,0" />
+
+		<Button x:Name="AddButtonButton" Grid.Column="4" Classes="Red" VerticalAlignment="Bottom" Margin="0,0,0,5">
+			<material:MaterialIcon Kind="Trash" />
+		</Button>
+    </Grid>
+</UserControl>

@@ -1,0 +1,18 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+			 xmlns:material="using:Material.Icons.Avalonia"
+			 Name="Control"
+             x:Class="ModAPI.Components.TabItem">
+	<Border x:Name="Border">
+		<Button x:Name="Button">
+			<StackPanel Orientation="Horizontal">
+				<material:MaterialIcon x:Name="MaterialIcon" Kind="{Binding #Control.MaterialIcon}"></material:MaterialIcon>
+				<Image Source="{Binding #Control.ImageIcon}" x:Name="ImageIcon" />
+				<TextBlock Text="{Binding #Control.DisplayName}" />
+			</StackPanel>
+		</Button>
+	</Border>
+</UserControl>

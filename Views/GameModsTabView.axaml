@@ -1,0 +1,53 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+			 xmlns:comps="using:ModAPI.Components"
+			 xmlns:material="using:Material.Icons.Avalonia"
+             x:Class="ModAPI.Views.GameModsTabView">
+	<Grid Margin="20">
+		<Grid.RowDefinitions>
+			<RowDefinition Height="40" />
+			<RowDefinition Height="*" />
+		</Grid.RowDefinitions>
+		<StackPanel Classes="Title" Grid.Row="0" Margin="0,0,0,20">
+			<material:MaterialIcon Kind="Archive" />
+			<TextBlock Text="Mods"></TextBlock>
+		</StackPanel>
+		<Border Classes="Box" VerticalAlignment="Top" Grid.Row="1" IsVisible="{Binding !Data.IsModable}">
+			<TextBlock Text="This game is currently not set-up to be modable. Please generate the mod library first." />
+		</Border>
+		<Border Classes="Box" VerticalAlignment="Stretch" Grid.Row="1" IsVisible="{Binding Data.IsModable}">
+			<Grid VerticalAlignment="Stretch">
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="250" />
+					<ColumnDefinition Width="*" />
+				</Grid.ColumnDefinitions>
+				<Grid Grid.Column="0" VerticalAlignment="Stretch">
+					<Grid.RowDefinitions>
+						<RowDefinition Height="40" />
+						<RowDefinition Height="*" />
+					</Grid.RowDefinitions>
+					<StackPanel Grid.Column="0" Classes="Title" Margin="0,0,0,20">
+						<material:MaterialIcon Kind="BulletinBoard" />
+						<TextBlock Grid.Row="0" Classes="Bold" Text="Available mods" />
+					</StackPanel>
+					<Border Classes="Box" Grid.Row="1" Margin="0,0,0,10">
+						<ScrollViewer Margin="-10">
+							<ItemsControl Items="{Binding Data.Mods}">
+								<ItemsControl.ItemTemplate>
+									<DataTemplate>
+										<comps:SidebarModItem IsActive="{Binding IsActive}" />
+									</DataTemplate>
+								</ItemsControl.ItemTemplate>
+							</ItemsControl>
+						</ScrollViewer>
+					</Border>
+				</Grid>
+				<ContentControl Margin="10,0,0,0" Grid.Column="1" Content="{Binding Data.SelectedMod}" />
+			</Grid>
+
+		</Border>
+	</Grid>
+</UserControl>

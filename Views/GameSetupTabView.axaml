@@ -1,0 +1,27 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+			 xmlns:comps="using:ModAPI.Components"
+			 xmlns:material="using:Material.Icons.Avalonia"
+             x:Class="ModAPI.Views.GameSetupTabView">
+	<ScrollViewer DockPanel.Dock="Bottom" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+		<StackPanel Orientation="Vertical" Margin="20" Spacing="20">
+			<StackPanel Classes="Title">
+				<material:MaterialIcon Kind="Gear" />
+				<TextBlock Text="Settings"></TextBlock>
+			</StackPanel>
+			<Border Classes="Box">
+				<WrapPanel Orientation="Horizontal">
+					<comps:DirectoryInput Label="Game path" Value="{Binding Data.GameDirectory, Mode=TwoWay}" />
+				</WrapPanel>
+			</Border>
+			<Border Classes="Box" IsVisible="{Binding Data.GameInfo, Converter={x:Static ObjectConverters.IsNull}}">
+				<TextBlock Text="Game could not be found. To be able to use ModAPI please specify the game path." />
+			</Border>
+			<ContentControl Content="{Binding Data.GameInfo}" />
+			<ContentControl Content="{Binding Data.ModLibrary}" />
+		</StackPanel>
+	</ScrollViewer>
+</UserControl>

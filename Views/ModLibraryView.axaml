@@ -1,0 +1,108 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+			 xmlns:comps="using:ModAPI.Components"
+			 xmlns:material="using:Material.Icons.Avalonia"
+             x:Class="ModAPI.Views.ModLibraryView">
+	<StackPanel Orientation="Vertical" Spacing="20">
+		<StackPanel Classes="Title">
+			<material:MaterialIcon Kind="Bookshelf" />
+			<TextBlock Text="Mod library"></TextBlock>
+		</StackPanel>
+		<Border Classes="Box">
+			<StackPanel Orientation="Vertical" Spacing="10">
+				<TextBlock TextWrapping="Wrap" HorizontalAlignment="Stretch" Text="In order to mod your game a mod library is required. If you encounter problems with your mods it may help to check the integrity of your game files (for example via Steam) and to re-generate the mod library." />
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="1*" MinWidth="300" />
+						<ColumnDefinition Width="1*" />
+					</Grid.ColumnDefinitions>
+					<StackPanel Grid.Column="0" Orientation="Vertical" Spacing="5">
+						<TextBlock FontWeight="Bold" Text="Information" />
+						<StackPanel Orientation="Horizontal">
+							<TextBlock FontWeight="Bold" Text="Exists:" Width="150" />
+							<TextBlock IsVisible="{Binding !Exists}" Text="No" />
+							<TextBlock IsVisible="{Binding Exists}" Text="Yes" />
+						</StackPanel>
+						<StackPanel Orientation="Horizontal">
+							<TextBlock FontWeight="Bold" Text="Is up-to-date?:" Width="150" />
+							<TextBlock IsVisible="{Binding !IsUpToDate}" Text="No" />
+							<TextBlock IsVisible="{Binding IsUpToDate}" Text="Yes" />
+						</StackPanel>
+						<Grid>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="150" />
+								<ColumnDefinition Width="*" />
+							</Grid.ColumnDefinitions>
+							<TextBlock Grid.Column="0" FontWeight="Bold" Text="Location:" Width="150" />
+							<TextBlock Grid.Column="1" TextWrapping="Wrap" Text="{Binding LibraryDirectory}" />
+						</Grid>
+					</StackPanel>
+					<StackPanel Grid.Column="1" Orientation="Vertical" Spacing="5">
+						<TextBlock FontWeight="Bold" Text="Libraries" />
+						<StackPanel Orientation="Vertical">
+							<Border BorderThickness="0,0,0,1">
+								<Border.Background>
+									<SolidColorBrush Color="#10000000" />
+								</Border.Background>
+								<Border.BorderBrush>
+									<SolidColorBrush Color="#20ffffff" />
+								</Border.BorderBrush>
+								<Grid>
+									<Grid.ColumnDefinitions>
+										<ColumnDefinition SharedSizeGroup="LibrariesColumn0" Width="*" />
+										<ColumnDefinition SharedSizeGroup="LibrariesColumn1" Width="100" />
+									</Grid.ColumnDefinitions>
+									<Grid.RowDefinitions>
+										<RowDefinition Height="20" />
+									</Grid.RowDefinitions>
+									<TextBlock Margin="5" Grid.Column="0" Classes="Bold" Text="Library" />
+									<TextBlock Margin="5" Grid.Column="1" Classes="Bold" Text="Is outdated?" />
+								</Grid>
+							</Border>
+							<ScrollViewer BorderBrush="Transparent" CornerRadius="6" Height="150">
+								<ScrollViewer.Background>
+									<SolidColorBrush Color="#10000000" />
+								</ScrollViewer.Background>
+								<ItemsControl Items="{Binding Libraries}" Grid.Column="0">
+									<ItemsControl.ItemsPanel>
+										<ItemsPanelTemplate>
+											<StackPanel Orientation="Vertical"></StackPanel>
+										</ItemsPanelTemplate>
+									</ItemsControl.ItemsPanel>
+									<ItemsControl.ItemTemplate>
+										<DataTemplate>
+											<Grid>
+												<Grid.ColumnDefinitions>
+													<ColumnDefinition SharedSizeGroup="LibrariesColumn0" Width="*" />
+													<ColumnDefinition SharedSizeGroup="LibrariesColumn1" Width="100" />
+												</Grid.ColumnDefinitions>
+												<TextBlock Margin="5" TextWrapping="Wrap" Grid.Column="0" Text="{Binding File}"></TextBlock>
+												<TextBlock Margin="5" TextWrapping="Wrap" IsVisible="{Binding IsOutdated}" Grid.Column="1" Text="Yes"></TextBlock>
+												<TextBlock Margin="5" TextWrapping="Wrap" IsVisible="{Binding !IsOutdated}" Grid.Column="1" Text="No"></TextBlock>
+											</Grid>
+										</DataTemplate>
+									</ItemsControl.ItemTemplate>
+								</ItemsControl>
+							</ScrollViewer>
+						</StackPanel>
+					</StackPanel>
+				</Grid>
+				
+				<StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
+					<Button x:Name="DeleteModLibrary" IsVisible="{Binding Exists}" Classes="Red">
+						<TextBlock>Delete mod library</TextBlock>
+					</Button>
+					<Button x:Name="CreateModLibrary" IsVisible="{Binding !Exists}" Classes="Green">
+						<TextBlock>Create mod library</TextBlock>
+					</Button>
+					<Button x:Name="RecreateModLibrary" IsVisible="{Binding Exists}" Classes="Green">
+						<TextBlock>Recreate mod library</TextBlock>
+					</Button>
+				</StackPanel>
+			</StackPanel>
+		</Border>
+	</StackPanel>
+</UserControl>

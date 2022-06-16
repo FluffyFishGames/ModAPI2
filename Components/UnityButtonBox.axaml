@@ -1,0 +1,29 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+			 x:Name="Control"
+             x:Class="ModAPI.Components.UnityButtonBox">
+	<StackPanel Classes="Input" HorizontalAlignment="Stretch">
+		<TextBlock Text="{Binding #Control.Label}" />
+		<Border>
+			<Grid HorizontalAlignment="Stretch">
+				<Button x:Name="Button" HorizontalAlignment="Stretch">
+					<Grid>
+						<TextBlock Text="{Binding #Control.Value.String}" IsVisible="{Binding !#Control.IsAssigning}" />
+						<StackPanel Orientation="Horizontal">
+							<TextBlock Text="Assigning..." IsVisible="{Binding #Control.ShowAssigning}" />
+							<TextBlock Text="Left Ctrl + " IsVisible="{Binding #Control.LeftControl}" />
+							<TextBlock Text="Left Alt + " IsVisible="{Binding #Control.LeftAlt}" />
+							<TextBlock Text="Left Shift + " IsVisible="{Binding #Control.LeftShift}" />
+							<TextBlock Text="Right Ctrl + " IsVisible="{Binding #Control.RightControl}" />
+							<TextBlock Text="Right Alt + " IsVisible="{Binding #Control.RightAlt}" />
+							<TextBlock Text="Right Shift + " IsVisible="{Binding #Control.RightShift}" />
+						</StackPanel>
+					</Grid>
+				</Button>
+			</Grid>
+		</Border>
+	</StackPanel>
+</UserControl>

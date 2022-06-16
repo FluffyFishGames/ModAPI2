@@ -1,0 +1,40 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+			 xmlns:comps="using:ModAPI.Components"
+			 xmlns:material="using:Material.Icons.Avalonia"
+             x:Class="ModAPI.Views.TaskView">
+	<Border Margin="0,65,0,0">
+		<Border.Background>
+			<SolidColorBrush Color="#70000000" />
+		</Border.Background>
+		<Border HorizontalAlignment="Center" VerticalAlignment="Center" CornerRadius="6">
+			<Border.Background>
+				<SolidColorBrush Color="#2e343f" />
+			</Border.Background>
+			<Grid Width="350">
+				<StackPanel Orientation="Vertical" Spacing="10" Margin="10,0,10,15">
+					<StackPanel Orientation="Horizontal" Margin="-10,0,-10,0">
+						<StackPanel.Background>
+							<SolidColorBrush Color="#10ffffff" />
+						</StackPanel.Background>
+						<material:MaterialIcon Kind="Gear" Foreground="White" Margin="10,0,0,0" />
+						<TextBlock Text="{Binding Name}" Margin="10" />
+					</StackPanel>
+					<TextBlock Text="{Binding ProgressHandler.CurrentAction}" />
+					<ProgressBar Height="10" Minimum="0" Maximum="1" Value="{Binding ProgressHandler.Progress}" />
+					<StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
+						<Button Classes="Red" IsVisible="{Binding IsCancelVisible}">
+							<TextBlock Text="Cancel" />
+						</Button>
+						<Button x:Name="CloseButton" Classes="Red" IsVisible="{Binding IsCloseVisible}">
+							<TextBlock Text="Close" />
+						</Button>
+					</StackPanel>
+				</StackPanel>
+			</Grid>
+		</Border>
+	</Border>
+</UserControl>

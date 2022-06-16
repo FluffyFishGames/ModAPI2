@@ -1,0 +1,67 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+			 xmlns:comps="using:ModAPI.Components"
+			 xmlns:material="using:Material.Icons.Avalonia"
+             x:Class="ModAPI.Views.ModProject.ModProjectView">
+
+	<Grid VerticalAlignment="Stretch" Margin="0,0,0,0">
+		<Grid.RowDefinitions>
+			<RowDefinition Height="40" />
+			<RowDefinition Height="*" />
+			<RowDefinition Height="30" />
+		</Grid.RowDefinitions>
+		<StackPanel Grid.Row="0" Orientation="Horizontal" Classes="Title" Margin="0,0,0,20">
+			<material:MaterialIcon Kind="Archive" />
+			<TextBlock Text="Project" Margin="0,0,5,0" />
+			<TextBlock Text="{Binding Configuration.Name}" />
+		</StackPanel>
+		<ScrollViewer Grid.Row="1">
+			<StackPanel Orientation="Vertical" Spacing="10" Margin="0,0,10,0">
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="*" />
+						<ColumnDefinition Width="180" />
+					</Grid.ColumnDefinitions>
+					<comps:TextBox Grid.Column="0" Label="Name" Value="{Binding Configuration.Name, Mode=TwoWay}" />
+					<comps:VersionTextBox Grid.Column="1" Margin="10,0,0,0" Label="Version" Value="{Binding Configuration.Version, Mode=TwoWay}" />
+				</Grid>
+				<Grid IsVisible="{Binding Game.GameInfo.SupportsLegacyInput}">
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="*" />
+						<ColumnDefinition Width="30" />
+					</Grid.ColumnDefinitions>
+					<StackPanel Grid.Column="0" Orientation="Horizontal" Classes="Title">
+						<material:MaterialIcon Kind="Keyboard" />
+						<TextBlock Text="Buttons" />
+					</StackPanel>
+					<Button x:Name="AddButtonButton" Grid.Column="1" Classes="Green">
+						<material:MaterialIcon Kind="Plus" />
+					</Button>
+				</Grid>
+				<ItemsControl Items="{Binding Configuration.Buttons}" IsVisible="{Binding Game.GameInfo.SupportsLegacyInput}">
+					<ItemsControl.ItemsPanel>
+						<ItemsPanelTemplate>
+							<StackPanel Orientation="Vertical" Spacing="10" />
+						</ItemsPanelTemplate>
+					</ItemsControl.ItemsPanel>
+					<ItemsControl.ItemTemplate>
+						<DataTemplate>
+							<ContentControl Content="{Binding}" />
+						</DataTemplate>
+					</ItemsControl.ItemTemplate>
+				</ItemsControl>
+			</StackPanel>
+		</ScrollViewer>
+		<StackPanel Grid.Row="2" HorizontalAlignment="Right" Orientation="Horizontal" Spacing="10">
+			<Button Classes="Red">
+				<TextBlock Text="Delete project" />
+			</Button>
+			<Button Classes="Green" x:Name="BuildModButton">
+				<TextBlock Text="Build mod" />
+			</Button>
+		</StackPanel>
+	</Grid>
+</UserControl>

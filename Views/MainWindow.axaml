@@ -1,0 +1,55 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:ModAPI.ViewModels"
+		xmlns:comps="using:ModAPI.Components"
+		xmlns:material="using:Material.Icons.Avalonia"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="ModAPI.Views.MainWindow"
+        Icon="/Assets/avalonia-logo.ico"
+		ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome"
+        ExtendClientAreaTitleBarHeightHint="-1"
+        Title="ModAPIAvalonia">
+
+	<Grid>
+		<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+			<StackPanel DockPanel.Dock="Left" Orientation="Vertical" Classes="Left">
+				<Border Classes="Logo">
+					<Svg Margin="0,0,0,0" Path="/Resources/logo_white.svg" Width="100" HorizontalAlignment="Center" />
+				</Border>
+				<comps:SidebarItem DisplayName="Games" IsHeader="true" MaterialIcon="GamepadVariant" />
+				<ItemsControl Items="{Binding Games}">
+					<ItemsControl.ItemTemplate>
+						<DataTemplate>
+							<comps:SidebarItem IsActive="{Binding IsActive}" DisplayName="{Binding DisplayName}" ImageIcon="{Binding ImageIcon}" />
+						</DataTemplate>
+					</ItemsControl.ItemTemplate>
+				</ItemsControl>
+				<comps:SidebarItem DisplayName="Settings" IsHeader="true" MaterialIcon="Gear" />
+			</StackPanel>
+			<DockPanel DockPanel.Dock="Right" Classes="Right" HorizontalAlignment="Stretch">
+				<Grid DockPanel.Dock="Top" Classes="TopBar">
+					<StackPanel Orientation="Horizontal" Spacing="0" HorizontalAlignment="Right" VerticalAlignment="Top" Classes="WindowButtons">
+						<Button x:Name="MinimizeButton">
+							<material:MaterialIcon x:Name="MinimizeIcon" Kind="WindowMinimize"></material:MaterialIcon>
+						</Button>
+						<Button x:Name="MaximizeButton">
+							<material:MaterialIcon x:Name="MaximizeIcon" Kind="WindowMaximize"></material:MaterialIcon>
+						</Button>
+						<Button x:Name="RestoreButton">
+							<material:MaterialIcon x:Name="RestoreIcon" Kind="WindowRestore"></material:MaterialIcon>
+						</Button>
+						<Button x:Name="CloseButton" Classes="red">
+							<material:MaterialIcon x:Name="CloseIcon" Kind="WindowClose"></material:MaterialIcon>
+						</Button>
+					</StackPanel>
+				</Grid>
+				<ContentControl Content="{Binding Page}" DockPanel.Dock="Bottom" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" />			
+			</DockPanel>
+		</DockPanel>
+		<ContentControl Content="{Binding CurrentPopup}" />
+		<Grid Background="Transparent" x:Name="DragArea" Margin="0,0,110,0" HorizontalAlignment="Stretch" Height="30" VerticalAlignment="Top" />
+	</Grid>
+</Window>

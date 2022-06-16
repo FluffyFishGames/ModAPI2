@@ -1,0 +1,231 @@
+﻿<Styles xmlns="https://github.com/avaloniaui"
+		xmlns:comps="using:ModAPI.Components"
+		xmlns:material="using:Material.Icons.Avalonia"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Design.PreviewWith>
+        <Border Padding="20">
+            <!-- Add Controls for Previewer Here -->
+        </Border>
+    </Design.PreviewWith>
+
+
+	<Style Selector="comps|SidebarItem Border">
+		<Setter Property="HorizontalAlignment" Value="Stretch" />
+		<Setter Property="Height" Value="40" />
+		<Setter Property="Background" Value="Transparent" />
+		<Setter Property="BorderThickness" Value="0,0,0,1" />
+		<Setter Property="BorderBrush">
+			<Setter.Value>
+				<SolidColorBrush Color="#24252b" />
+			</Setter.Value>
+		</Setter>
+	</Style>
+	<Style Selector="comps|SidebarItem material|MaterialIcon">
+		<Setter Property="Foreground">
+			<Setter.Value>
+				<SolidColorBrush Color="#7a7b8d" />
+			</Setter.Value>
+		</Setter>
+		<Setter Property="Margin" Value="0,0,10,0">
+
+		</Setter>
+	</Style>
+
+	<Style Selector="comps|SidebarItem Border StackPanel">
+		<Setter Property="Margin" Value="10,9,0,9" />
+	</Style>
+	<Style Selector="comps|SidebarItem Border TextBlock">
+		<Setter Property="Foreground">
+			<Setter.Value>
+				<SolidColorBrush Color="#7a7b8d" />
+			</Setter.Value>
+		</Setter>
+	</Style>
+
+	<Style Selector="comps|SidebarItem:not(.active).hover Border">
+		<Setter Property="Background">
+			<Setter.Value>
+				<SolidColorBrush Color="#05ffffff" />
+			</Setter.Value>
+		</Setter>
+	</Style>
+	<Style Selector="comps|SidebarItem:not(.active).normal Border">
+		<Style.Animations>
+			<Animation Duration="0:0:0.2" Easing="QuadraticEaseOut">
+				<KeyFrame Cue="0%">
+					<Setter Property="Background">
+						<SolidColorBrush Color="#05ffffff" />
+					</Setter>
+				</KeyFrame>
+				<KeyFrame Cue="100%">
+					<Setter Property="Background" Value="Transparent" />
+				</KeyFrame>
+			</Animation>
+		</Style.Animations>
+	</Style>
+	<Style Selector="comps|SidebarItem.active material|MaterialIcon">
+		<Setter Property="Foreground">
+			<Setter.Value>
+				<SolidColorBrush Color="#ea6b72" />
+			</Setter.Value>
+		</Setter>
+	</Style>
+	<Style Selector="comps|SidebarItem.active TextBlock">
+		<Setter Property="Foreground">
+			<Setter.Value>
+				<SolidColorBrush Color="#ea6b72" />
+			</Setter.Value>
+		</Setter>
+	</Style>
+
+	<Style Selector="comps|SidebarItem.active Button /template/ ContentPresenter">
+		<Setter Property="CornerRadius" Value="0" />
+		<Setter Property="BorderThickness" Value="2,0,0,0" />
+		<Setter Property="Padding" Value="-2,0,0,0" />
+		<Setter Property="BorderBrush">
+			<SolidColorBrush Color="#ea6b72" />
+		</Setter>
+	</Style>
+	<Style Selector="comps|SidebarItem.active Button:pointerover /template/ ContentPresenter">
+		<Setter Property="CornerRadius" Value="0" />
+		<Setter Property="BorderThickness" Value="2,0,0,0" />
+		<Setter Property="Padding" Value="-2,0,0,0" />
+		<Setter Property="BorderBrush">
+			<SolidColorBrush Color="#ea6b72" />
+		</Setter>
+	</Style>
+	<Style Selector="comps|SidebarItem.active Border">
+		<Setter Property="Background">
+			<Setter.Value>
+				<SolidColorBrush Color="#303540" />
+			</Setter.Value>
+		</Setter>
+	</Style>
+	<Style Selector="comps|SidebarItem Border Button">
+		<Setter Property="Padding" Value="0" />
+		<Setter Property="Margin" Value="0" />
+		<Setter Property="Background" Value="Transparent" />
+		<Setter Property="HorizontalAlignment" Value="Stretch" />
+		<Setter Property="VerticalAlignment" Value="Stretch" />
+	</Style>
+	<Style Selector="comps|SidebarItem Border Button:pointerover /template/ ContentPresenter">
+		<Setter Property="Background" Value="Transparent" />
+	</Style>
+	<Style Selector="comps|SidebarItem Border Image">
+		<Setter Property="Width" Value="20" />
+		<Setter Property="Height" Value="20" />
+		<Setter Property="Margin" Value="0,0,10,0" />
+	</Style>
+	<Style Selector="comps|SidebarItem Border Svg">
+		<Setter Property="Width" Value="20" />
+		<Setter Property="Height" Value="20" />
+		<Setter Property="Margin" Value="0,0,10,0" />
+	</Style>
+
+	<Style Selector="comps|SidebarModItem > Border">
+		<Setter Property="HorizontalAlignment" Value="Stretch" />
+		<Setter Property="Height" Value="50" />
+		<Setter Property="Background" Value="Transparent" />
+		<Setter Property="BorderThickness" Value="0,0,0,1" />
+		<Setter Property="BorderBrush">
+			<Setter.Value>
+				<SolidColorBrush Color="#24252b" />
+			</Setter.Value>
+		</Setter>
+	</Style>
+	<Style Selector="comps|SidebarModItem material|MaterialIcon">
+		<Setter Property="Foreground">
+			<Setter.Value>
+				<SolidColorBrush Color="#7a7b8d" />
+			</Setter.Value>
+		</Setter>
+		<Setter Property="Margin" Value="0,0,10,0">
+
+		</Setter>
+	</Style>
+
+	<Style Selector="comps|SidebarModItem > Border > Button > StackPanel">
+		<Setter Property="Margin" Value="10,8,0,8" />
+	</Style>
+	<Style Selector="comps|SidebarModItem > Border > Button > StackPanel > StackPanel > TextBlock">
+		<Setter Property="Foreground">
+			<Setter.Value>
+				<SolidColorBrush Color="#7a7b8d" />
+			</Setter.Value>
+		</Setter>
+	</Style>
+
+	<Style Selector="comps|SidebarModItem > Border > Button > StackPanel > StackPanel > TextBlock:nth-child(2)">
+		<Setter Property="FontSize" Value="9" />
+	</Style>
+
+	<Style Selector="comps|SidebarModItem:not(.active).hover > Border">
+		<Setter Property="Background">
+			<Setter.Value>
+				<SolidColorBrush Color="#05ffffff" />
+			</Setter.Value>
+		</Setter>
+	</Style>
+	<Style Selector="comps|SidebarModItem:not(.active).normal > Border">
+		<Style.Animations>
+			<Animation Duration="0:0:0.2" Easing="QuadraticEaseOut">
+				<KeyFrame Cue="0%">
+					<Setter Property="Background">
+						<SolidColorBrush Color="#05ffffff" />
+					</Setter>
+				</KeyFrame>
+				<KeyFrame Cue="100%">
+					<Setter Property="Background" Value="Transparent" />
+				</KeyFrame>
+			</Animation>
+		</Style.Animations>
+	</Style>
+	<Style Selector="comps|SidebarModItem.active material|MaterialIcon">
+		<Setter Property="Foreground">
+			<Setter.Value>
+				<SolidColorBrush Color="#ea6b72" />
+			</Setter.Value>
+		</Setter>
+	</Style>
+	<Style Selector="comps|SidebarModItem.active TextBlock">
+		<Setter Property="Foreground">
+			<Setter.Value>
+				<SolidColorBrush Color="#ea6b72" />
+			</Setter.Value>
+		</Setter>
+	</Style>
+
+	<Style Selector="comps|SidebarModItem.active > Border > Button /template/ ContentPresenter">
+		<Setter Property="CornerRadius" Value="0" />
+		<Setter Property="BorderThickness" Value="2,0,0,0" />
+		<Setter Property="Padding" Value="-2,0,0,0" />
+		<Setter Property="BorderBrush">
+			<SolidColorBrush Color="#ea6b72" />
+		</Setter>
+	</Style>
+	<Style Selector="comps|SidebarModItem.active > Border > Button:pointerover /template/ ContentPresenter">
+		<Setter Property="CornerRadius" Value="0" />
+		<Setter Property="BorderThickness" Value="2,0,0,0" />
+		<Setter Property="Padding" Value="-2,0,0,0" />
+		<Setter Property="BorderBrush">
+			<SolidColorBrush Color="#ea6b72" />
+		</Setter>
+	</Style>
+	<Style Selector="comps|SidebarModItem.active > Border">
+		<Setter Property="Background">
+			<Setter.Value>
+				<SolidColorBrush Color="#303540" />
+			</Setter.Value>
+		</Setter>
+	</Style>
+	<Style Selector="comps|SidebarModItem > Border > Button">
+		<Setter Property="Padding" Value="0" />
+		<Setter Property="Margin" Value="0" />
+		<Setter Property="Background" Value="Transparent" />
+		<Setter Property="HorizontalAlignment" Value="Stretch" />
+		<Setter Property="VerticalAlignment" Value="Stretch" />
+	</Style>
+	<Style Selector="comps|SidebarModItem > Border > Button:pointerover /template/ ContentPresenter">
+		<Setter Property="Background" Value="Transparent" />
+	</Style>
+</Styles>

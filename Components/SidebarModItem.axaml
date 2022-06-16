@@ -1,0 +1,20 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+			 xmlns:material="using:Material.Icons.Avalonia"
+			 Name="Control"
+             x:Class="ModAPI.Components.SidebarModItem">
+	<Border x:Name="Border">
+		<Button x:Name="Button">
+			<StackPanel Orientation="Horizontal">
+				<CheckBox IsChecked="{Binding Configuration.IsActivated, Mode=TwoWay}" />
+				<StackPanel Orientation="Vertical">
+					<TextBlock Text="{Binding Configuration.Name}" />
+					<TextBlock Text="{Binding Configuration.Version}" />
+				</StackPanel>
+			</StackPanel>
+		</Button>
+	</Border>
+</UserControl>

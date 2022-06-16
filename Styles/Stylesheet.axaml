@@ -1,0 +1,245 @@
+﻿<Styles xmlns="https://github.com/avaloniaui"
+		xmlns:comps="using:ModAPI.Components"
+		xmlns:material="using:Material.Icons.Avalonia"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Design.PreviewWith>
+        <Border Padding="20">
+            <!-- Add Controls for Previewer Here -->
+        </Border>
+    </Design.PreviewWith>
+
+	<Style Selector="Window">
+		<Setter Property="Background">
+			<Setter.Value>
+				<ImageBrush Source="/Resources/gradient.png" Stretch="UniformToFill">
+				</ImageBrush>
+			</Setter.Value>
+		</Setter>
+	</Style>
+	<Style Selector="TextBlock">
+		<Setter Property="FontFamily" Value="/Resources/fonts/SF-Pro-Display-Regular.otf" />
+		<Setter Property="Foreground" Value="White" />
+	</Style>
+	<Style Selector="TextBlock.Bold">
+		<Setter Property="FontFamily" Value="/Resources/fonts/SF-Pro-Display-Bold.otf" />
+	</Style>
+
+	<Style Selector="Border.Logo">
+		<Setter Property="HorizontalAlignment" Value="Stretch" />
+		<Setter Property="Height" Value="64" />
+		<Setter Property="BorderThickness" Value="0,0,0,1" />
+		<Setter Property="BorderBrush">
+			<Setter.Value>
+				<SolidColorBrush Color="#24252b" />
+			</Setter.Value>
+		</Setter>
+	</Style>
+	<Style Selector="StackPanel.Left">
+		<Setter Property="Width" Value="200" />
+		<Setter Property="Background">
+			<Setter.Value>
+				<SolidColorBrush Color="#282d37"/>
+			</Setter.Value>
+		</Setter>
+	</Style>
+	<Style Selector="Grid.TopBar">
+		<Setter Property="Height" Value="65" />
+		<Setter Property="HorizontalAlignment" Value="Stretch" />
+		<Setter Property="Background">
+			<Setter.Value>
+				<SolidColorBrush Color="#50000000"/>
+			</Setter.Value>
+		</Setter>
+	</Style>
+	<Style Selector=".WindowButtons Button /template/ ContentPresenter">
+		<Setter Property="BorderThickness" Value="0" />
+		<Setter Property="CornerRadius" Value="0" />
+		<Setter Property="Padding" Value="10" />
+		<Setter Property="Background">
+			<Setter.Value>
+				<SolidColorBrush Color="#00000000" />
+			</Setter.Value>
+		</Setter>
+	</Style>
+	<Style Selector=".WindowButtons Button:not(.red):pointerover /template/ ContentPresenter">
+		<Setter Property="Background">
+			<Setter.Value>
+				<SolidColorBrush Color="#10ffffff" />
+			</Setter.Value>
+		</Setter>
+	</Style>
+	<Style Selector=".WindowButtons Button.red:pointerover /template/ ContentPresenter">
+		<Setter Property="Background">
+			<Setter.Value>
+				<SolidColorBrush Color="#60ff0000" />
+			</Setter.Value>
+		</Setter>
+	</Style>
+	<Style Selector=".WindowButtons Button:not(.red).normal /template/ ContentPresenter">
+		<Style.Animations>
+			<Animation Duration="0:0:0.2" Easing="QuadraticEaseOut">
+				<KeyFrame Cue="0%">
+					<Setter Property="Background">
+						<SolidColorBrush Color="#10ffffff" />
+					</Setter>
+				</KeyFrame>
+				<KeyFrame Cue="100%">
+					<Setter Property="Background" Value="Transparent" />
+				</KeyFrame>
+			</Animation>
+		</Style.Animations>
+	</Style>
+	<Style Selector=".WindowButtons Button.normal.red /template/ ContentPresenter">
+		<Style.Animations>
+			<Animation Duration="0:0:0.2" Easing="QuadraticEaseOut">
+				<KeyFrame Cue="0%">
+					<Setter Property="Background">
+						<SolidColorBrush Color="#60ff0000" />
+					</Setter>
+				</KeyFrame>
+				<KeyFrame Cue="100%">
+					<Setter Property="Background">
+						<SolidColorBrush Color="#00ff0000" />
+					</Setter>
+				</KeyFrame>
+			</Animation>
+		</Style.Animations>
+	</Style>
+	<Style Selector=".WindowButtons material|MaterialIcon">
+		<Setter Property="Foreground">
+			<Setter.Value>
+				<SolidColorBrush Color="#7a7b8d"/>
+			</Setter.Value>
+		</Setter>
+	</Style>
+
+	<Style Selector="Border.Banner">
+		<Setter Property="BorderThickness" Value="0,0,0,1" />
+		<Setter Property="BorderBrush">
+			<Setter.Value>
+				<SolidColorBrush Color="#24252b" />
+			</Setter.Value>
+		</Setter>
+		<Setter Property="HorizontalAlignment" Value="Stretch" />
+		<Setter Property="VerticalAlignment" Value="Top" />
+		<Setter Property="Height" Value="200" />
+	</Style>
+
+	<Style Selector="Border.Box">
+		<Setter Property="Padding" Value="20" />
+		<Setter Property="CornerRadius" Value="8" />
+		<Setter Property="Background">
+			<SolidColorBrush Color="#20000000" />
+		</Setter>
+	</Style>
+
+	<Style Selector="StackPanel.Title">
+		<Setter Property="Orientation" Value="Horizontal" />
+	</Style>
+
+	<Style Selector="StackPanel.Title material|MaterialIcon">
+		<Setter Property="Foreground">
+			<SolidColorBrush Color="#ffffff" />
+		</Setter>
+		<Setter Property="Margin" Value="0,0,10,0" />
+	</Style>
+
+	<Style Selector="StackPanel.Title TextBlock">
+		<Setter Property="FontFamily" Value="/Resources/fonts/SF-Pro-Display-Bold.otf" />
+		<Setter Property="FontWeight" Value="Bold" />
+		<Setter Property="FontSize" Value="16" />
+		<Setter Property="Foreground">
+			<SolidColorBrush Color="#ffffff" />
+		</Setter>
+	</Style>
+
+	<Style Selector="StackPanel.ValueWithLabel">
+		<Setter Property="Orientation" Value="Vertical" />
+	</Style>
+
+	<Style Selector="StackPanel.ValueWithLabel TextBlock:nth-child(1)">
+		<Setter Property="Foreground">
+			<SolidColorBrush Color="#999999" />
+		</Setter>
+		<Setter Property="FontSize" Value="12" />
+	</Style>
+
+	<Style Selector="StackPanel.ValueWithLabel TextBlock:nth-child(2)">
+		<Setter Property="FontSize" Value="16" />
+	</Style>
+
+	<Style Selector="Button.Red">
+		<Setter Property="Background" Value="Transparent" />
+		<Setter Property="BorderThickness" Value="1" />
+		<Setter Property="CornerRadius" Value="32" />
+		<Setter Property="HorizontalContentAlignment" Value="Center" />
+		<Setter Property="Padding" Value="10,5,10,5" />
+		<Setter Property="BorderBrush">
+			<SolidColorBrush Color="#ea6b72" />
+		</Setter>
+	</Style>
+	<Style Selector="Button.Green">
+		<Setter Property="Background" Value="Transparent" />
+		<Setter Property="BorderThickness" Value="1" />
+		<Setter Property="CornerRadius" Value="32" />
+		<Setter Property="HorizontalContentAlignment" Value="Center" />
+		<Setter Property="Padding" Value="10,5,10,5" />
+		<Setter Property="BorderBrush">
+			<SolidColorBrush Color="#1ecd8c" />
+		</Setter>
+	</Style>
+	<Style Selector="Button.Red /template/ ContentPresenter">
+		<Setter Property="Background" Value="Transparent" />
+		<Setter Property="BorderThickness" Value="1" />
+		<Setter Property="CornerRadius" Value="32" />
+		<Setter Property="HorizontalContentAlignment" Value="Center" />
+		<Setter Property="Padding" Value="10,5,10,5" />
+		<Setter Property="BorderBrush">
+			<SolidColorBrush Color="#ea6b72" />
+		</Setter>
+	</Style>
+	<Style Selector="Button.Green /template/ ContentPresenter">
+		<Setter Property="Background" Value="Transparent" />
+		<Setter Property="BorderThickness" Value="1" />
+		<Setter Property="CornerRadius" Value="32" />
+		<Setter Property="HorizontalContentAlignment" Value="Center" />
+		<Setter Property="Padding" Value="10,5,10,5" />
+		<Setter Property="BorderBrush">
+			<SolidColorBrush Color="#1ecd8c" />
+		</Setter>
+	</Style>
+
+	<Style Selector="Button.Red:pointerover /template/ ContentPresenter">
+		<Setter Property="Background">
+			<SolidColorBrush Color="#10ea6b72" />
+		</Setter>
+	</Style>
+	<Style Selector="Button.Green:pointerover /template/ ContentPresenter">
+		<Setter Property="Background">
+			<SolidColorBrush Color="#101ecd8c" />
+		</Setter>
+	</Style>
+	<Style Selector="Button.Red material|MaterialIcon">
+		<Setter Property="Foreground">
+			<SolidColorBrush Color="#ea6b72" />
+		</Setter>
+	</Style>
+	<Style Selector="Button.Green material|MaterialIcon">
+		<Setter Property="Foreground">
+			<SolidColorBrush Color="#1ecd8c" />
+		</Setter>
+	</Style>
+
+	<Style Selector="Button.Red TextBlock">
+		<Setter Property="FontSize" Value="13" />
+		<Setter Property="Foreground">
+			<SolidColorBrush Color="#ea6b72" />
+		</Setter>
+	</Style>
+	<Style Selector="Button.Green TextBlock">
+		<Setter Property="FontSize" Value="13" />
+		<Setter Property="Foreground">
+			<SolidColorBrush Color="#1ecd8c" />
+		</Setter>
+	</Style>
+</Styles>

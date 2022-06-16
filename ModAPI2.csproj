@@ -1,0 +1,139 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <RootNamespace>ModAPI</RootNamespace>
+	<RuntimeIdentifier>win-x64</RuntimeIdentifier>
+	<StartupObject>ModAPI.Program</StartupObject>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <Optimize>False</Optimize>
+	<DebugType>embedded</DebugType>
+	<DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <Optimize>False</Optimize>
+  </PropertyGroup>
+  <ItemGroup>
+    <Folder Include="Models\" />
+    <AvaloniaResource Include="Assets\**" />
+    <AvaloniaXaml Remove="BaseModLib\**" />
+    <Compile Remove="BaseModLib\**" />
+    <EmbeddedResource Remove="BaseModLib\**" />
+    <None Remove="BaseModLib\**" />
+    <None Remove=".gitignore" />
+    <None Remove="BaseModLib.dll" />
+    <None Remove="libs\tinyfiledialogs.dylib.lz4hc" />
+    <None Remove="libs\tinyfiledialogs32.dll.lz4hc" />
+    <None Remove="libs\tinyfiledialogs32.lib.lz4hc" />
+    <None Remove="libs\tinyfiledialogs64.dll.lz4hc" />
+    <None Remove="libs\tinyfiledialogs64.lib.lz4hc" />
+    <None Remove="Resources\fonts\SF-Pro-Display-Black.otf" />
+    <None Remove="Resources\fonts\SF-Pro-Display-BlackItalic.otf" />
+    <None Remove="Resources\fonts\SF-Pro-Display-Bold.otf" />
+    <None Remove="Resources\fonts\SF-Pro-Display-BoldItalic.otf" />
+    <None Remove="Resources\fonts\SF-Pro-Display-Heavy.otf" />
+    <None Remove="Resources\fonts\SF-Pro-Display-HeavyItalic.otf" />
+    <None Remove="Resources\fonts\SF-Pro-Display-Light.otf" />
+    <None Remove="Resources\fonts\SF-Pro-Display-LightItalic.otf" />
+    <None Remove="Resources\fonts\SF-Pro-Display-Medium.otf" />
+    <None Remove="Resources\fonts\SF-Pro-Display-MediumItalic.otf" />
+    <None Remove="Resources\fonts\SF-Pro-Display-Regular.otf" />
+    <None Remove="Resources\fonts\SF-Pro-Display-RegularItalic.otf" />
+    <None Remove="Resources\fonts\SF-Pro-Display-Semibold.otf" />
+    <None Remove="Resources\fonts\SF-Pro-Display-SemiboldItalic.otf" />
+    <None Remove="Resources\fonts\SF-Pro-Display-Thin.otf" />
+    <None Remove="Resources\fonts\SF-Pro-Display-ThinItalic.otf" />
+    <None Remove="Resources\fonts\SF-Pro-Display-Ultralight.otf" />
+    <None Remove="Resources\fonts\SF-Pro-Display-UltralightItalic.otf" />
+    <None Remove="Resources\gradient.png" />
+    <None Remove="Resources\hokkolife\banner.png" />
+    <None Remove="Resources\hokkolife\icon.png" />
+    <None Remove="Resources\icons\game.svg" />
+    <None Remove="Resources\icons\package.svg" />
+    <None Remove="Resources\logo_white.svg" />
+    <None Remove="Resources\sunhaven\banner.png" />
+    <None Remove="Resources\sunhaven\icon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <AvaloniaResource Include="Resources\fonts\SF-Pro-Display-Black.otf" />
+    <AvaloniaResource Include="Resources\fonts\SF-Pro-Display-BlackItalic.otf" />
+    <AvaloniaResource Include="Resources\fonts\SF-Pro-Display-Bold.otf" />
+    <AvaloniaResource Include="Resources\fonts\SF-Pro-Display-BoldItalic.otf" />
+    <AvaloniaResource Include="Resources\fonts\SF-Pro-Display-Heavy.otf" />
+    <AvaloniaResource Include="Resources\fonts\SF-Pro-Display-HeavyItalic.otf" />
+    <AvaloniaResource Include="Resources\fonts\SF-Pro-Display-Light.otf" />
+    <AvaloniaResource Include="Resources\fonts\SF-Pro-Display-LightItalic.otf" />
+    <AvaloniaResource Include="Resources\fonts\SF-Pro-Display-Medium.otf" />
+    <AvaloniaResource Include="Resources\fonts\SF-Pro-Display-MediumItalic.otf" />
+    <AvaloniaResource Include="Resources\fonts\SF-Pro-Display-Regular.otf" />
+    <AvaloniaResource Include="Resources\fonts\SF-Pro-Display-RegularItalic.otf" />
+    <AvaloniaResource Include="Resources\fonts\SF-Pro-Display-Semibold.otf" />
+    <AvaloniaResource Include="Resources\fonts\SF-Pro-Display-SemiboldItalic.otf" />
+    <AvaloniaResource Include="Resources\fonts\SF-Pro-Display-Thin.otf" />
+    <AvaloniaResource Include="Resources\fonts\SF-Pro-Display-ThinItalic.otf" />
+    <AvaloniaResource Include="Resources\fonts\SF-Pro-Display-Ultralight.otf" />
+    <AvaloniaResource Include="Resources\fonts\SF-Pro-Display-UltralightItalic.otf" />
+    <AvaloniaResource Include="Resources\gradient.png" />
+    <AvaloniaResource Include="Resources\hokkolife\banner.png" />
+    <AvaloniaResource Include="Resources\hokkolife\icon.png" />
+    <AvaloniaResource Include="Resources\icons\game.svg" />
+    <AvaloniaResource Include="Resources\icons\package.svg" />
+    <AvaloniaResource Include="Resources\logo_white.svg" />
+    <AvaloniaResource Include="Resources\sunhaven\banner.png" />
+    <AvaloniaResource Include="Resources\sunhaven\icon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="BaseModLib.dll" />
+    <EmbeddedResource Include="libs\tinyfiledialogs.dylib.lz4hc" />
+    <EmbeddedResource Include="libs\tinyfiledialogs32.dll.lz4hc" />
+    <EmbeddedResource Include="libs\tinyfiledialogs32.lib.lz4hc" />
+    <EmbeddedResource Include="libs\tinyfiledialogs64.dll.lz4hc" />
+    <EmbeddedResource Include="libs\tinyfiledialogs64.lib.lz4hc" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="0.10.10" />
+    <PackageReference Include="Avalonia.Desktop" Version="0.10.10" />
+    <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
+    <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="0.10.10" />
+    <PackageReference Include="Avalonia.ReactiveUI" Version="0.10.10" />
+    <PackageReference Include="Avalonia.Svg" Version="0.10.10" />
+    <PackageReference Include="K4os.Compression.LZ4.Streams" Version="1.2.16" />
+    <PackageReference Include="Material.Icons.Avalonia" Version="1.0.2" />
+    <PackageReference Include="Mono.Cecil" Version="0.11.4" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="NLog" Version="4.7.13" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ModAPI2.0\BaseModLib\BaseModLib.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Components\SidebarModItem.axaml.cs">
+      <DependentUpon>SidebarModItem.axaml</DependentUpon>
+    </Compile>
+    <Compile Update="Views\ModProject\ModButtonView.axaml.cs">
+      <DependentUpon>ModButtonView.axaml</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="libs\tinyfiledialogs.dylib">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="libs\tinyfiledialogs32.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="libs\tinyfiledialogs32.lib">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="libs\tinyfiledialogs64.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="libs\tinyfiledialogs64.lib">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="nlog.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+</Project>

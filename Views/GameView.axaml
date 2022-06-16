@@ -1,0 +1,43 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+			 xmlns:comps="using:ModAPI.Components"
+			 xmlns:material="using:Material.Icons.Avalonia"
+             x:Class="ModAPI.Views.GameView">
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="*" />
+			<RowDefinition Height="50" />
+		</Grid.RowDefinitions>
+		<StackPanel Grid.Row="0" Orientation="Vertical" HorizontalAlignment="Stretch">
+			<Border Classes="Banner">
+				<Border.Background>
+					<ImageBrush Source="{Binding Banner}" Stretch="UniformToFill" />
+				</Border.Background>
+			</Border>
+			<Border Classes="TabBar">
+				<ItemsControl Items="{Binding Tabs}">
+					<ItemsControl.ItemsPanel>
+						<ItemsPanelTemplate>
+							<StackPanel Orientation="Horizontal"/>
+						</ItemsPanelTemplate>
+					</ItemsControl.ItemsPanel>
+					<ItemsControl.ItemTemplate>
+						<DataTemplate>
+							<comps:TabItem IsActive="{Binding IsActive}" DisplayName="{Binding DisplayName}" ImageIcon="{Binding ImageIcon}" MaterialIcon="{Binding MaterialIcon}" />
+						</DataTemplate>
+					</ItemsControl.ItemTemplate>
+				</ItemsControl>
+			</Border>
+		</StackPanel>
+		<ContentControl Grid.Row="1" Content="{Binding Page}" />
+		<StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Grid.Row="2">
+			<Button Classes="Green" x:Name="PatchGameButton">
+				<TextBlock Text="Patch game" />
+			</Button>
+		</StackPanel>
+	</Grid>
+</UserControl>

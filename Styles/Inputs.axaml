@@ -1,0 +1,103 @@
+﻿<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Design.PreviewWith>
+        <Border Padding="20">
+            <!-- Add Controls for Previewer Here -->
+        </Border>
+    </Design.PreviewWith>
+
+    <Style Selector="StackPanel.Input">
+        <Setter Property="Orientation" Value="Vertical" />
+    </Style>
+
+	<Style Selector="StackPanel.Input > TextBlock">
+		<Setter Property="Foreground">
+			<SolidColorBrush Color="#ffffff" />
+		</Setter>
+		<Setter Property="FontSize" Value="12" />
+		<Setter Property="FontWeight" Value="Bold" />
+		<Setter Property="FontFamily" Value="/Resources/fonts/SF-Pro-Display-Bold.otf" />
+		<Setter Property="Margin" Value="0,0,0,5" />
+	</Style>
+
+	<Style Selector="StackPanel.Input > Border">
+		<Setter Property="BorderBrush">
+			<SolidColorBrush Color="#10ffffff" />
+		</Setter>
+		<Setter Property="BorderThickness" Value="1" />
+		<Setter Property="CornerRadius" Value="6" />
+	</Style>
+
+	<Style Selector="StackPanel.Input ButtonSpinner">
+		<Setter Property="MinWidth" Value="0" />
+	</Style>
+	
+	<Style Selector="StackPanel.Input TextBox">
+		<Setter Property="MinWidth" Value="0" />
+		<Setter Property="Foreground" Value="White" />
+		<Setter Property="Background" Value="Transparent" />
+		<Setter Property="BorderBrush" Value="Transparent" />
+		<Setter Property="FontFamily" Value="/Resources/fonts/SF-Pro-Display-Regular.otf" />
+		<Setter Property="CornerRadius" Value="0" />
+		<Setter Property="BorderThickness" Value="0" />
+		<Setter Property="FontSize" Value="12" />
+		<Setter Property="CaretBrush" Value="White" />
+		<Setter Property="SelectionBrush">
+			<SolidColorBrush Color="#60ffffff"/>
+		</Setter>
+	</Style>
+	<Style Selector="StackPanel.Input NumericUpDown">
+		<Setter Property="Foreground" Value="White" />
+		<Setter Property="Background" Value="Transparent" />
+		<Setter Property="BorderBrush" Value="Transparent" />
+		<Setter Property="FontFamily" Value="/Resources/fonts/SF-Pro-Display-Regular.otf" />
+		<Setter Property="CornerRadius" Value="0" />
+		<Setter Property="BorderThickness" Value="0" />
+		<Setter Property="FontSize" Value="12" />
+		<!--
+		<Setter Property="CaretBrush" Value="White" />
+		<Setter Property="SelectionBrush">
+			<SolidColorBrush Color="#60ffffff"/>
+		</Setter>-->
+	</Style>
+
+	<Style Selector="StackPanel.Input TextBox /template/ TextPresenter">
+		<Setter Property="Margin" Value="0,2,0,0" />
+	</Style>
+
+	<Style Selector="StackPanel.Input NumericUpDown /template/ TextPresenter">
+		<Setter Property="Margin" Value="0,2,0,0" />
+	</Style>
+	<Style Selector="StackPanel.Input TextBox /template/ Border">
+		<Setter Property="Background" Value="Transparent" />
+		<Setter Property="BorderBrush" Value="Transparent" />
+		<Setter Property="CornerRadius" Value="0" />
+		<Setter Property="BorderThickness" Value="0" />
+	</Style>
+
+	<Style Selector="StackPanel.Input NumericUpDown /template/ Border">
+		<Setter Property="Background" Value="Transparent" />
+		<Setter Property="BorderBrush" Value="Transparent" />
+		<Setter Property="CornerRadius" Value="0" />
+		<Setter Property="BorderThickness" Value="0" />
+	</Style>
+	<Style Selector="StackPanel.Input Button TextBlock">
+		<Setter Property="Foreground" Value="White" />
+	</Style>
+
+	<Style Selector="StackPanel.Input Button /template/ ContentPresenter">
+		<Setter Property="Background" Value="Transparent" />
+		<Setter Property="BorderBrush" Value="Transparent" />
+		<Setter Property="CornerRadius" Value="0" />
+		<Setter Property="BorderThickness" Value="0" />
+	</Style>
+
+	<Style Selector="StackPanel.Input Border.Line">
+		<Setter Property="BorderBrush">
+			<SolidColorBrush Color="#10ffffff" />
+		</Setter>
+		<Setter Property="Margin" Value="0,4,0,4" />
+		<Setter Property="CornerRadius" Value="0" />
+		<Setter Property="BorderThickness" Value="1,0,0,0" />
+	</Style>
+</Styles>

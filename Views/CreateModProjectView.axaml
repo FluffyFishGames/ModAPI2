@@ -1,0 +1,42 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+			 xmlns:comps="using:ModAPI.Components"
+			 xmlns:material="using:Material.Icons.Avalonia"
+             x:Class="ModAPI.Views.CreateModProjectView">
+	<Border Margin="0,65,0,0">
+		<Border.Background>
+			<SolidColorBrush Color="#70000000" />
+		</Border.Background>
+		<Border HorizontalAlignment="Center" VerticalAlignment="Center" CornerRadius="6">
+			<Border.Background>
+				<SolidColorBrush Color="#2e343f" />
+			</Border.Background>
+			<Grid Width="450">
+				<StackPanel Orientation="Vertical" Spacing="10" Margin="10,0,10,15">
+					<StackPanel Orientation="Horizontal" Margin="-10,0,-10,0">
+						<StackPanel.Background>
+							<SolidColorBrush Color="#10ffffff" />
+						</StackPanel.Background>
+						<material:MaterialIcon Kind="Wrench" Foreground="White" Margin="10,0,0,0" />
+						<TextBlock Text="Create mod project" Margin="10" />
+					</StackPanel>
+					<TextBlock Text="Please specify an unique name for your project." />
+					<comps:TextBox InputWidth="430" Label="Project name" Value="{Binding Name, Mode=TwoWay}"></comps:TextBox>
+					<TextBlock Text="The entered name is invalid." IsVisible="{Binding IsInvalid}" />
+					<TextBlock Text="A project with the same name already exists." IsVisible="{Binding AlreadyExists}" />
+					<StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
+						<Button x:Name="CancelButton" Classes="Red">
+							<TextBlock Text="Cancel" />
+						</Button>
+						<Button x:Name="CreateButton" Classes="Green" IsEnabled="{Binding !HasError}">
+							<TextBlock Text="Create" />
+						</Button>
+					</StackPanel>
+				</StackPanel>
+			</Grid>
+		</Border>
+	</Border>
+</UserControl>
