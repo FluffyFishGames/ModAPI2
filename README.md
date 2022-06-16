@@ -165,14 +165,14 @@ public override void Test(int a, ref int retValue)
 
 # Todo
 
-[ ] Tidy up the mod creationg process
-[ ] Tidy up the mod application process
-[ ] Test and implement all possible callstack chain checks
-[ ] Add editable games configuration to support different games
-[ ] Add unity specific base packages and enable modding of non unity managed games
-[ ] Add micro IL patching with string dictionary support
-[ ] Add mod download site / Create new ModAPI page
-[ ] Testing, testing, testing...
+- [ ] Tidy up the mod creationg process
+- [ ] Tidy up the mod application process
+- [ ] Test and implement all possible callstack chain checks
+- [ ] Add editable games configuration to support different games
+- [ ] Add unity specific base packages and enable modding of non unity managed games
+- [ ] Add micro IL patching with string dictionary support
+- [ ] Add mod download site / Create new ModAPI page
+- [ ] Testing, testing, testing...
 
 # License
 
