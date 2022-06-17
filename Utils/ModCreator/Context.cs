@@ -439,7 +439,11 @@ namespace ModAPI.Utils
                                 method.Parameters.Add(numParam);
 
                                 var routes = CallStack.FindCallsTo(method, baseMethod);
-                                ExtendRoutesToBaseCall(this, type, routes, method, chainParam, numParam, @delegate, highestDisplayClass);
+                                CallStack.Extend(method, ModLibrary, new Dictionary<string, TypeReference>() {
+                                    { "num", module.TypeSystem.Int32 },
+                                    { "chain", @delegate.Type.MakeArrayType() }
+                                }, routes);
+                                //ExtendRoutesToBaseCall(this, type, routes, method, chainParam, numParam, @delegate, highestDisplayClass);
                                 method.Body.Optimize();
                             }
                         }

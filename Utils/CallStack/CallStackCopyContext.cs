@@ -1,4 +1,5 @@
 ﻿using Mono.Cecil;
+using Mono.Cecil.Cil;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,15 +8,18 @@ using System.Threading.Tasks;
 
 namespace ModAPI.Utils
 {
-    internal partial class ModCreator
+    internal partial class CallStack
     {
-        private class CallStackCopyContext
+        public class CallStackCopyContext
         {
             public Dictionary<string, string> ClassMappings = new();
             public Dictionary<string, string> MethodMappings = new();
             public Dictionary<string, DisplayClass> DisplayClasses = new();
-            public Dictionary<string, MethodDefinition> Methods = new();
-            public MonoHelper.Delegate Delegate;
+            public Dictionary<string, (MethodDefinition, Instruction[])> Methods = new();
+            public Dictionary<string, TypeReference> AddParameters = new();
+            public ModLibrary ModLibrary;
+            public TypeDefinition Type;
+            public ModuleDefinition Module;
             public int HighestDisplayClassNum;
             public int HighestDisplayClassSub;
         }

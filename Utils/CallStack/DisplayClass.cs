@@ -9,24 +9,23 @@ using System.Threading.Tasks;
 
 namespace ModAPI.Utils
 {
-    internal partial class ModCreator
+    internal partial class CallStack
     {
-        private class DisplayClass
+        public class DisplayClass
         {
             public TypeDefinition Type;
             public MethodDefinition Constructor;
             public Dictionary<string, MethodDefinition> Methods = new();
             public Dictionary<string, FieldDefinition> Fields = new();
             public FieldDefinition ThisField;
-            public FieldDefinition ChainNumField;
-            public FieldDefinition ChainMethodsField;
+            public Dictionary<string, FieldDefinition> AddedFields;
             public int HighestSub = -1;
 
             public DisplayClass()
             {
 
             }
-            public DisplayClass(TypeDefinition type)
+            public DisplayClass(TypeDefinition type, CallStackCopyContext context = null)
             {
                 Type = type;
                 for (var i = 0; i < type.Methods.Count; i++)
@@ -46,20 +45,17 @@ namespace ModAPI.Utils
                     }
                     else if (type.Fields[i].Name == "self")
                         ThisField = type.Fields[i];
-                    else if (type.Fields[i].Name == "__ModAPI_chain_methods")
-                        ChainMethodsField = type.Fields[i];
-                    else if (type.Fields[i].Name == "__ModAPI_chain_num")
-                        ChainNumField = type.Fields[i];
+                    else if (context != null && context.AddParameters.ContainsKey(type.Fields[i].Name))
+                        AddedFields.Add(type.Fields[i].Name, type.Fields[i]);
                 }
             }
 
-            public DisplayClass Copy(TypeDefinition parent, CallStackCopyContext context)
+            public DisplayClass Copy(CallStackCopyContext context)
             {
-                var module = Type.Module;
+                var parent = context.Type;
+                var module = context.Module;
+                var addedFields = new Dictionary<string, FieldDefinition>();
 
-                var @delegate = context.Delegate;
-                //var match = Regex.Match(Type.Name, @"\<\>c__DisplayClass([0-9]+)_([0-9]+)");
-                //var sub = int.Parse(match.Groups[2].Value);
                 var newName = "<>c__DisplayClass" + context.HighestDisplayClassNum + "_" + context.HighestDisplayClassSub;
                 var newClass = new TypeDefinition(Type.Namespace, newName, Type.Attributes);
                 parent.NestedTypes.Add(newClass);
@@ -75,18 +71,17 @@ namespace ModAPI.Utils
                         newField.Name = "self";
                         thisField = newField;
                     }
-                    //if (classMapping.ContainsKey(original[i].Fields[j].FieldType.Name))
-                    //    newField.FieldType = module.ImportReference(newClasses[classMapping[original[i].Fields[j].FieldType.Name]].Type);
                     newClass.Fields.Add(newField);
                     newFields.Add(newField.Name, newField);
                 }
 
-                var numField = new FieldDefinition("__ModAPI_chain_num", FieldAttributes.Public, module.TypeSystem.Int32);
-                var chainField = new FieldDefinition("__ModAPI_chain_methods", FieldAttributes.Public, module.ImportReference(@delegate.Type.MakeArrayType()));
-                newFields.Add("__ModAPI_chain_num", numField);
-                newFields.Add("__ModAPI_chain_methods", chainField);
-                newClass.Fields.Add(numField);
-                newClass.Fields.Add(chainField);
+                foreach (var param in context.AddParameters)
+                {
+                    var newField = new FieldDefinition(param.Key, FieldAttributes.Public, module.Import(param.Value));
+                    newClass.Fields.Add(newField);
+                    newFields.Add(param.Key, newField);
+                    addedFields.Add(param.Key, newField);
+                }
 
                 if (thisField == null)
                 {
@@ -115,7 +110,7 @@ namespace ModAPI.Utils
                         if (context != null)
                         {
                             context.MethodMappings.Add(method.FullName, newMethod.FullName);
-                            context.Methods.Add(newMethod.FullName, newMethod);
+                            context.Methods.Add(newMethod.FullName, (newMethod, newMethod.Body.Instructions.ToArray()));
                         }
                     }
                     if (method.Name == ".ctor")
@@ -146,8 +141,7 @@ namespace ModAPI.Utils
                     Constructor = constructor,
                     Fields = newFields,
                     Methods = newMethods,
-                    ChainMethodsField = chainField,
-                    ChainNumField = numField,
+                    AddedFields = addedFields,
                     ThisField = thisField
                 };
 
@@ -170,7 +164,7 @@ namespace ModAPI.Utils
                         if (instruction.Operand is MethodReference mref)
                         {
                             if (context.MethodMappings.ContainsKey(mref.FullName))
-                                instruction.Operand = method.Value.Module.ImportReference(context.Methods[context.MethodMappings[mref.FullName]]);
+                                instruction.Operand = method.Value.Module.ImportReference(context.Methods[context.MethodMappings[mref.FullName]].Item1);
                             else if (mref.Name == ".ctor" && context.ClassMappings.ContainsKey(mref.DeclaringType.Name))
                                 instruction.Operand = method.Value.Module.ImportReference(context.DisplayClasses[context.ClassMappings[mref.DeclaringType.Name]].Constructor);
                         }

@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace ModAPI.Utils
 {
-    internal partial class ModCreator
+    internal partial class CallStack
     {
-        private class CallStackCopyScopeContext
+        public class CallStackCopyScope
         {
             public enum TypeEnum
             {
@@ -17,11 +17,9 @@ namespace ModAPI.Utils
                 METHOD
             }
             public TypeEnum Type;
-            public DisplayClass DisplayClass;
-            public MethodDefinition Method;
-            public ParameterDefinition NumParam;
-            public ParameterDefinition ChainParam;
-            public CallStackCopyScopeContext Parent;
+            public CallStack.DisplayClass DisplayClass;
+            public CallStack.Method Method;
+            public CallStackCopyScope Parent;
             public string OriginalName;
         }
     }
