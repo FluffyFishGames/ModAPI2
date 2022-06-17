@@ -93,8 +93,8 @@ namespace ModAPI.Utils
                         else
                         {
                             // create a new display class
-                            var objectType = context.AllTypes["System.Object"];
-                            var compilerGeneratedAttributeConstructor = context.AllTypes["System.Runtime.CompilerServices.CompilerGeneratedAttribute"].Methods.First(m => m.IsConstructor);
+                            var objectType = context.ModLibrary.AllTypes["System.Object"];
+                            var compilerGeneratedAttributeConstructor = context.ModLibrary.AllTypes["System.Runtime.CompilerServices.CompilerGeneratedAttribute"].Methods.First(m => m.IsConstructor);
 
                             routeContext.HighestDisplayClassNum++;
                             routeContext.HighestDisplayClassSub = 0;
