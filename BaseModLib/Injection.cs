@@ -36,6 +36,28 @@ namespace ModAPI
             set => _TypeName = value;
         }
 
+        private string _FullMethodName;
+        internal string FullMethodName
+        {
+            get => _FullMethodName;
+            set => _FullMethodName = value;
+        }
+
+        private string _FullFieldName;
+        internal string FullFieldName
+        {
+            get => _FullFieldName;
+            set => _FullFieldName = value;
+        }
+
+        private string _FullPropertyName;
+        internal string FullPropertyName
+        {
+            get => _FullPropertyName;
+            set => _FullPropertyName = value;
+        }
+
+
         private Type InjectionType;
         public enum Type : int
         {

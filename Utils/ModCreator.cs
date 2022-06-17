@@ -18,59 +18,19 @@ namespace ModAPI.Utils
     {
         private static NLog.ILogger Logger = NLog.LogManager.GetLogger("ModCreator");
 
-        public class Context
+        public class Input
         {
             public ModProject Project;
             public ProgressHandler ProgressHandler;
         }
 
-        public static void Execute(Context ctxt)
+        public static void Execute(Input ctxt)
         {
-            var context = new PrivateContext(ctxt);
+            var context = new Context(ctxt);
             try
             {
-                context.Project.Configuration.MethodReplaces.Clear();
-                context.Project.Configuration.MethodHookAfter.Clear();
-                context.Project.Configuration.MethodHookBefore.Clear();
-                context.Project.Configuration.MethodChain.Clear();
                 context.LoadModLibrary();
-
-                var c = 0;
-
-                var resolver = new DefaultAssemblyResolver();
-                resolver.AddSearchDirectory(context.Project.Game.ModLibrary.LibraryDirectory);
-                var readerParameters = new ReaderParameters()
-                {
-                    AssemblyResolver = resolver,
-                    ReadWrite = true
-                };
-                var modAssembly = AssemblyDefinition.ReadAssembly(Path.Combine(context.Project.Directory, context.Project.Configuration.Name + ".dll"), readerParameters);
-                foreach (var type in modAssembly.MainModule.Types)
-                {
-                    ParseModType(context, type);
-                }
-
-                context.ProgressHandler.ChangeProgress("Loading mod library assemblies...", 0.02f);
-
-                for (var i = 0; i < modAssembly.MainModule.Resources.Count; i++)
-                {
-                    var resource = modAssembly.MainModule.Resources[i];
-                    if (resource.ResourceType == ResourceType.Embedded && resource.Name == "ModConfiguration")
-                    {
-                        Logger.Warn("There is already a resource called ModConfiguration. Removing it.");
-                        modAssembly.MainModule.Resources.RemoveAt(i);
-                        i--;
-                    }
-                }
-
-                modAssembly.MainModule.Resources.Add(new EmbeddedResource("ModConfiguration", ManifestResourceAttributes.Public, System.Text.Encoding.UTF8.GetBytes(context.Project.Configuration.ToJSON(true).ToString())));
-                modAssembly.Write(Path.Combine(context.Project.Directory, "Output.dll"));
-                modAssembly.Dispose();
-
-                foreach (var assembly in context.Assemblies)
-                {
-                    assembly.Value.Dispose();
-                }
+                context.CreateMod();
             }
             catch (Exception ex)
             {
@@ -79,279 +39,8 @@ namespace ModAPI.Utils
             }
         }
 
-        private static void ParseModType(PrivateContext context, TypeDefinition type)
-        {
-            TypeDefinition baseType = null;
-            TypeReference baseTypeReference = null;
-            if (type.BaseType != null)
-            {
-                var baseTypeName = type.BaseType.FullName;
-                if (context.AllTypes.ContainsKey(baseTypeName))
-                {
-                    baseType = context.AllTypes[baseTypeName];
-                    baseTypeReference = type.Module.ImportReference(baseType);
-                    Logger.Info($"Found base type \"{type.BaseType.FullName}\" of \"{type.FullName}\" in mod library.");
-                }
-            }
 
-            if (baseType != null)
-            {
-                int highestDisplayClass = MonoHelper.GetHighestDisplayClassGroup(type);
-                
-                List<MethodDefinition> foundMethods = new List<MethodDefinition>();
-                bool foundMethod = false;
-                for (var m = 0; m < type.Methods.Count; m++)
-                {
-                    var method = type.Methods[m];
-                    if (method.IsConstructor)
-                        continue;
-                    Injection.Type injectionType = Injection.Type.Chain;
-                    string methodName = null;
-                    string typeName = null;
-                    string fieldName = null;
-                    string propertyName = null;
-                    CustomAttribute injectionAttribute = null;
-                    foreach (var attribute in method.CustomAttributes)
-                    {
-                        if (attribute.AttributeType.FullName == "ModAPI.Injection")
-                        {
-                            injectionAttribute = attribute;
-                            injectionType = (Injection.Type)attribute.ConstructorArguments[0].Value;
-                            for (var i = 0; i < attribute.Properties.Count; i++)
-                            {
-                                var property = attribute.Properties[i];
-                                if (property.Name == "MethodName")
-                                    methodName = (string)property.Argument.Value;
-                                if (property.Name == "TypeName")
-                                    typeName = (string)property.Argument.Value;
-                                if (property.Name == "FieldName")
-                                    fieldName = (string)property.Argument.Value;
-                                if (property.Name == "PropertyName")
-                                    propertyName = (string)property.Argument.Value;
-                                if (property.Name == "MethodName" || property.Name == "TypeName" || property.Name == "FieldName" || property.Name == "PropertyName") // for now remove it. we'll add them later again
-                                {
-                                    attribute.Properties.RemoveAt(i);
-                                    i--;
-                                    continue;
-                                }
-                            }
-                        }
-                    }
-                    TypeReference methodBaseTypeReference = null;
-                    if (typeName == null && baseType != null)
-                        methodBaseTypeReference = baseTypeReference;
-                    else if (typeName != null && context.AllTypes.ContainsKey(typeName))
-                        methodBaseTypeReference = method.Module.ImportReference(context.AllTypes[typeName]);
-
-                    if (methodBaseTypeReference == null)
-                    {
-                        // type needs to exist
-                        continue;
-                    }
-                
-                    string returnType = null;
-                    if (methodName == null)
-                        methodName = method.Name;
-
-                    var candidates = context.FindBaseMethods(method.DeclaringType.BaseType.FullName, methodName);
-
-                    Logger.Info("Checking candidates for " + method.FullName);
-                    var assignableTypes = context.GetAllAssignableTypes(baseType);
-                    MethodDefinition baseMethod = null;
-                
-                    foreach (var candidate in candidates)
-                    {
-                        if (injectionType != Injection.Type.HookBefore && candidate.ReturnType.FullName != method.ReturnType.FullName)
-                        {
-                            Logger.Trace("Return type of candidate " + candidate.FullName + " is not a match.");
-                            continue;
-                        }
-                        if (candidate.GenericParameters.Count != method.GenericParameters.Count)
-                        {
-                            Logger.Trace("Generic parameters of candidate " + candidate.FullName + " are not a match.");
-                            continue;
-                        }
-                        for (var i = 0; i < candidate.GenericParameters.Count; i++)
-                        {
-                            if (!candidate.GenericParameters[i].MatchingSignature(method.GenericParameters[i]))
-                            {
-                                Logger.Trace("Generic parameters of candidate " + candidate.FullName + " are not a match.");
-                                continue;
-                            }
-                        }
-                        var paramsCount = method.Parameters.Count;
-                        var paramsOffset = 0;
-                        if (!candidate.IsStatic && method.IsStatic)
-                        {
-                            if (method.Parameters.Count == 0)
-                            {
-                                Logger.Trace("Candidate " + candidate.FullName + " wasn't suitable as method is static and has no parameters (so most likely injecting into static method is the goal).");
-                                continue;
-                            }
-                            if (!assignableTypes.Contains(method.Parameters[0].ParameterType.FullName))
-                            {
-                                Logger.Trace("Candidate " + candidate.FullName + " wasn't suitable for first parameter of type " + method.Parameters[0].ParameterType.FullName);
-                                continue;
-                            }
-                            paramsOffset++;
-                        }
-                        if (injectionType == Injection.Type.HookAfter && candidate.ReturnType.FullName != "System.Void")
-                        {
-                            if (method.Parameters.Count == 0)
-                            {
-                                Logger.Trace("Method seems broken? Method is of type hook after and doesn't have parameters.");
-                                continue;
-                            }
-                            if (method.Parameters[0].ParameterType.FullName != candidate.ReturnType.FullName)
-                            {
-                                Logger.Trace("Candidate " + candidate.FullName + " wasn't suitable as the method is of type hook after and the return type of the candidate isn't matching the first parameter of method.");
-                                continue;
-                            }
-                            paramsOffset++;
-                        }
-                        if (candidate.Parameters.Count != paramsCount - paramsOffset)
-                        {
-                            Logger.Trace("Parameters of candidate " + candidate.FullName + " are not a match.");
-                            continue;
-                        }
-                        for (var i = 0; i < candidate.Parameters.Count; i++)
-                        {
-                            if (!candidate.Parameters[i].MatchingSignature(method.Parameters[i + paramsOffset]))
-                            {
-                                Logger.Trace("Parameters of candidate " + candidate.FullName + " are not a match.");
-                                continue;
-                            }
-                        }
-                        // we got him. It's a match! :)
-                        baseMethod = candidate;
-                        break;
-                    }
-                    if (baseMethod != null)
-                    {
-                        Logger.Info("Found base method " + baseMethod.FullName + " for " + method.FullName);
-                        foundMethod = true;
-                        if (method.IsGetter || method.IsSetter)
-                        {
-                            PropertyDefinition foundProperty = null;
-                            foreach (var property in baseMethod.DeclaringType.Properties)
-                            {
-                                if (property.GetMethod == baseMethod || property.SetMethod == baseMethod)
-                                {
-                                    foundProperty = property;
-                                    break;
-                                }
-                            }
-
-                            if (foundProperty != null)
-                            {
-                                CustomAttribute formerFieldAttribute = null;
-                                foreach (var attr in foundProperty.CustomAttributes)
-                                {
-                                    if (attr.Constructor.DeclaringType.FullName == "ModAPI.FormerField")
-                                    {
-                                        formerFieldAttribute = attr;
-                                        break;
-                                    }
-                                }
-                                if (formerFieldAttribute != null)
-                                    fieldName = formerFieldAttribute.ConstructorArguments[0].Value.ToString();//.Replace("::", "::__ModAPI_");
-                                else
-                                    propertyName = foundProperty.FullName;
-                            }
-                        }
-                        if (injectionAttribute == null)
-                        {
-                            injectionAttribute = new CustomAttribute(method.Module.ImportReference(context.AttributeConstructors["ModAPI.Injection"]));
-                            method.CustomAttributes.Add(injectionAttribute);
-                        }
-                        if (injectionAttribute.ConstructorArguments.Count == 0)
-                            injectionAttribute.ConstructorArguments.Add(new CustomAttributeArgument(method.Module.ImportReference(context.InjectionTypeType), injectionType));
-                        else
-                            injectionAttribute.ConstructorArguments[0] = new CustomAttributeArgument(method.Module.ImportReference(context.InjectionTypeType), injectionType);
-
-                        //injectionAttribute.Properties.Add(new CustomAttributeNamedArgument("MethodName", new CustomAttributeArgument(method.Module.TypeSystem.String, methodName)));
-                        injectionAttribute.Properties.Add(new CustomAttributeNamedArgument("TypeName", new CustomAttributeArgument(method.Module.TypeSystem.String, methodBaseTypeReference.FullName)));// baseMethod.DeclaringType.FullName)));
-                        if (fieldName != null)
-                            injectionAttribute.Properties.Add(new CustomAttributeNamedArgument("FullFieldName", new CustomAttributeArgument(method.Module.TypeSystem.String, fieldName)));
-                        if (propertyName != null)
-                            injectionAttribute.Properties.Add(new CustomAttributeNamedArgument("FullPropertyName", new CustomAttributeArgument(method.Module.TypeSystem.String, propertyName)));
-
-                        methodName = baseMethod.FullName;
-                        if (fieldName != null)
-                        {
-                            // we need to rename the method name in accordance to ModApplier
-                            methodName = methodName.Replace("::get_", "::get___ModAPI_").Replace("::set_", "::set__ModAPI_"); // for example: get_property to get___ModAPI_property
-                        }
-
-                        injectionAttribute.Properties.Add(new CustomAttributeNamedArgument("FullMethodName", new CustomAttributeArgument(method.Module.TypeSystem.String, methodName)));
-                        method.IsGetter = false;
-                        method.IsSetter = false;
-                        method.IsVirtual = false;
-                        method.IsHideBySig = true;
-                        method.IsSpecialName = false;
-                        if (!method.IsStatic && !baseMethod.IsStatic)
-                        {
-                            method.IsStatic = true;
-                            method.HasThis = false;
-                        
-                            method.Parameters.Insert(0, new ParameterDefinition("self", ParameterAttributes.None, method.Module.ImportReference(baseMethod.DeclaringType)));
-                        }
-
-                        if (injectionType == Injection.Type.Chain)
-                        {
-                            if (context.Delegates.ContainsKey(baseMethod.FullName))
-                            {
-                                method.Body.SimplifyMacros();
-                                var @delegate = context.Delegates[baseMethod.FullName];
-                            
-                                var processor = method.Body.GetILProcessor();
-                                var delegateArray = @delegate.Type.MakeArrayType();
-                                var chainParam = new ParameterDefinition("__modapi_chain_methods", ParameterAttributes.None, method.Module.ImportReference(delegateArray));
-                                var numParam = new ParameterDefinition("__modapi_chain_num", ParameterAttributes.None, method.Module.TypeSystem.Int32);
-                                method.Parameters.Add(chainParam);
-                                method.Parameters.Add(numParam);
-
-                                var routes = CallStack.FindCallsTo(method, baseMethod);
-                                ExtendRoutesToBaseCall(context, type, routes, method, chainParam, numParam, @delegate, highestDisplayClass);
-
-                                method.Body.Optimize();
-                            }
-                        }
-                        if (injectionType == Injection.Type.Replace)
-                            context.Project.Configuration.MethodReplaces.Add(methodName);
-                        if (injectionType == Injection.Type.HookAfter)
-                            context.Project.Configuration.MethodHookAfter.Add(methodName);
-                        if (injectionType == Injection.Type.HookBefore)
-                            context.Project.Configuration.MethodHookBefore.Add(methodName);
-                        if (injectionType == Injection.Type.Chain)
-                            context.Project.Configuration.MethodChain.Add(methodName);
-
-                        foundMethods.Add(method);
-                    }
-                    else
-                        Logger.Warn("Couldn't find base method of " + method.FullName);
-                }
-
-                if (foundMethod)
-                    type.IsPublic = true;
-
-                var removeProperties = new List<PropertyDefinition>();
-                foreach (var property in type.Properties)
-                {
-                    if (foundMethods.Contains(property.SetMethod))
-                        property.SetMethod = null;
-                    if (foundMethods.Contains(property.GetMethod))
-                        property.GetMethod = null;
-                    if (property.GetMethod == null && property.SetMethod == null)
-                        removeProperties.Add(property);
-                }
-                foreach (var p in removeProperties)
-                    type.Properties.Remove(p);
-
-            }
-        }
-
-        private static void ExtendRoutesToBaseCall(PrivateContext context, TypeDefinition type, List<CallStack.Node> routes, MethodDefinition method, ParameterDefinition chainParam, ParameterDefinition numParam, MonoHelper.Delegate @delegate, int highestDisplayClass)
+        private static void ExtendRoutesToBaseCall(Context context, TypeDefinition type, List<CallStack.Node> routes, MethodDefinition method, ParameterDefinition chainParam, ParameterDefinition numParam, MonoHelper.Delegate @delegate, int highestDisplayClass)
         {
             foreach (var route in routes)
             {
@@ -370,7 +59,7 @@ namespace ModAPI.Utils
             }
         }
 
-        private static void __ExtendRouteToBaseCall(PrivateContext context, TypeDefinition type, CallStack.Node node, CallStackCopyContext routeContext, CallStackCopyScopeContext scope)
+        private static void __ExtendRouteToBaseCall(Context context, TypeDefinition type, CallStack.Node node, CallStackCopyContext routeContext, CallStackCopyScopeContext scope)
         {
             var module = type.Module;
             if (node.Type == CallStack.Node.NodeType.Call)

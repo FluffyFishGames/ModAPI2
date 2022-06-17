@@ -43,7 +43,6 @@ namespace ModAPI.Utils
 
             public TypeDefinition InjectionTypeType;
             private static List<string> BaseModLibAttributes = new List<string>() { "ModAPI.ExecuteOnApplicationQuit", "ModAPI.ExecuteOnApplicationStart", "ModAPI.ExecuteOnFixedUpdate", "ModAPI.ExecuteOnLateUpdate", "ModAPI.ExecuteOnLevelLoad", "ModAPI.ExecuteOnUpdate", "ModAPI.Injection", "ModAPI.ModAPI", "ModAPI.Priority" };
-
             public PrivateContext(Context context)
             {
                 Mods = context.Mods;
