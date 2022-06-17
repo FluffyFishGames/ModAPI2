@@ -7,6 +7,22 @@ ModAPI 2 aims to bring modding to Unity (and also managed) games with some new p
 
 **This software is still in development!**
 
+# Goals
+
+Since I developed ModAPI seven years ago I learned a lot about MSIL. My understanding of C# has since grown which enables me to introduce some changes to ModAPI I couldn't imagine back then.
+Some of the goals for ModAPI 2 are:
+- An actual working transpiling process. (ModAPI 1 was a bit tricky to handle)
+- Support for lambda expressions
+- Support for co-routines.
+- Exploring the possibility to change mod co-routines.
+- Improving the chaining paradigma dramatically.
+- More options for modding: Hooks and replacing
+- Making chaining (calls to base method) callstack aware even through method calls, co-routines or lambda expresions.
+- Adding Micro-IL patching capabilities (especially useful for translations of games who have text in their code)
+- Adding asset importers and reworking Unity modules so the game code can actually discover the added resources and treat them equally.
+- Adding some improved development tools to make analyzing the game easier.
+- Adding ILSpy to ModAPI to make Micro-IL patching more intuitive and easier.
+
 # Paradigms
 
 ## Ease of use by overriding
