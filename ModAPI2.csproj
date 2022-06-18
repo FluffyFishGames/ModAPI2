@@ -114,6 +114,9 @@
     <Compile Update="Components\SidebarModItem.axaml.cs">
       <DependentUpon>SidebarModItem.axaml</DependentUpon>
     </Compile>
+    <Compile Update="Views\UnityMonoGameInfoView.axaml.cs">
+      <DependentUpon>UnityMonoGameInfoView.axaml</DependentUpon>
+    </Compile>
     <Compile Update="Views\ModProject\ModButtonView.axaml.cs">
       <DependentUpon>ModButtonView.axaml</DependentUpon>
     </Compile>

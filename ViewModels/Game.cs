@@ -18,10 +18,10 @@ namespace ModAPI.ViewModels
 {
     public class Game : ViewModelBase
     {
-        private FileSystemWatcher ProjectsWatcher;
-        private FileSystemWatcher ModsWatcher;
-        private static NLog.Logger Logger = NLog.LogManager.GetLogger("Game");
-        private List<string> ForbiddenAssemblies = new List<string>() { };// "Steamworks.NET" };
+        protected FileSystemWatcher ProjectsWatcher;
+        protected FileSystemWatcher ModsWatcher;
+        protected static NLog.Logger Logger = NLog.LogManager.GetLogger("Game");
+        protected List<string> ForbiddenAssemblies = new List<string>() { };// "Steamworks.NET" };
 
         private void GameViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
@@ -39,10 +39,10 @@ namespace ModAPI.ViewModels
             Page = page;
         }
 
-        private ViewModelBase _Page;
+        protected ViewModelBase _Page;
         public ViewModelBase Page { get => _Page; set => this.RaiseAndSetIfChanged<Game, ViewModelBase>(ref _Page, value, "Page"); }
 
-        private ModProject.ModProject _SelectedProject;
+        protected ModProject.ModProject _SelectedProject;
         public ModProject.ModProject SelectedProject
         {
             get => _SelectedProject;
@@ -59,7 +59,7 @@ namespace ModAPI.ViewModels
             }
         }
 
-        private Mod _SelectedMod;
+        protected Mod _SelectedMod;
         public Mod SelectedMod
         {
             get => _SelectedMod;
@@ -78,22 +78,22 @@ namespace ModAPI.ViewModels
 
         public List<GameTab> Tabs { get; set; }
 
-        private IImage _Banner;
+        protected IImage _Banner;
         public IImage Banner { get => _Banner; set => this.RaiseAndSetIfChanged<Game, IImage>(ref _Banner, value, "Banner"); }
 
-        private IImage _ImageIcon;
+        protected IImage _ImageIcon;
         public IImage ImageIcon { get => _ImageIcon; set => this.RaiseAndSetIfChanged<Game, IImage>(ref _ImageIcon, value, "ImageIcon"); }
 
-        private string _ID;
+        protected string _ID;
         public string ID { get => GameConfiguration.ID; }
 
-        private string _DisplayName;
+        protected string _DisplayName;
         public string DisplayName { get => GameConfiguration.Name; }
 
         //private string _Executeable;
         //public string Executeable { get => _Executeable; set => this.RaiseAndSetIfChanged<Game, string>(ref _Executeable, value, "Executeable"); }
 
-        private string _GameDirectory;
+        protected string _GameDirectory;
         public string GameDirectory 
         { 
             get => _GameDirectory; 
@@ -116,34 +116,34 @@ namespace ModAPI.ViewModels
             }
         }
 
-        private string _ManagedDirectory;
+        protected string _ManagedDirectory;
         public string ManagedDirectory { get => _ManagedDirectory; set => this.RaiseAndSetIfChanged<Game, string>(ref _ManagedDirectory, value, "ManagedDirectory"); }
 
-        private string _DataDirectory;
+        protected string _DataDirectory;
         public string DataDirectory { get => _DataDirectory; set => this.RaiseAndSetIfChanged<Game, string>(ref _DataDirectory, value, "DataDirectory"); }
 
-        private GameInfo _GameInfo;
-        public GameInfo GameInfo { get => _GameInfo; set => this.RaiseAndSetIfChanged<Game, GameInfo>(ref _GameInfo, value, "GameInfo"); }
+        protected UnityMonoGameInfo _GameInfo;
+        public UnityMonoGameInfo GameInfo { get => _GameInfo; set => this.RaiseAndSetIfChanged<Game, UnityMonoGameInfo>(ref _GameInfo, value, "GameInfo"); }
 
-        private Backup _Backup;
+        protected Backup _Backup;
         public Backup Backup { get => _Backup; set => this.RaiseAndSetIfChanged<Game, Backup>(ref _Backup, value, "Backup"); }
 
-        private ModLibrary _ModLibrary;
+        protected ModLibrary _ModLibrary;
         public ModLibrary ModLibrary { get => _ModLibrary; set => this.RaiseAndSetIfChanged<Game, ModLibrary>(ref _ModLibrary, value, "ModLibrary"); }
 
-        private bool _IsModded;
+        protected bool _IsModded;
         public bool IsModded { get => _IsModded; set => this.RaiseAndSetIfChanged<Game, bool>(ref _IsModded, value, "IsModded"); }
 
-        private bool _IsModable;
+        protected bool _IsModable;
         public bool IsModable { get => _IsModable; set => this.RaiseAndSetIfChanged<Game, bool>(ref _IsModable, value, "IsModable"); }
 
-        private ObservableCollection<Library> _ManagedLibraries = null;
+        protected ObservableCollection<Library> _ManagedLibraries = null;
         public ObservableCollection<Library> ManagedLibraries { get => _ManagedLibraries; set => this.RaiseAndSetIfChanged<Game, ObservableCollection<Library>>(ref _ManagedLibraries, value, "ManagedLibraries"); }
 
-        private ObservableCollection<ModProject.ModProject> _ModProjects = null;
+        protected ObservableCollection<ModProject.ModProject> _ModProjects = null;
         public ObservableCollection<ModProject.ModProject> ModProjects { get => _ModProjects; set => this.RaiseAndSetIfChanged<Game, ObservableCollection<ModProject.ModProject>>(ref _ModProjects, value, "ModProjects"); }
 
-        private ObservableCollection<Mod> _Mods = null;
+        protected ObservableCollection<Mod> _Mods = null;
         public ObservableCollection<Mod> Mods { get => _Mods; set => this.RaiseAndSetIfChanged<Game, ObservableCollection<Mod>>(ref _Mods, value, "Mods"); }
 
         public void SetConfiguration(JObject config)
@@ -152,7 +152,7 @@ namespace ModAPI.ViewModels
                 GameDirectory = config["path"].ToString();
         }
 
-        private bool _Loaded = false;
+        protected bool _Loaded = false;
         public bool Loaded { get => _Loaded; set => this.RaiseAndSetIfChanged<Game, bool>(ref _Loaded, value); }
         public JObject GetConfiguration()
         {
@@ -170,7 +170,7 @@ namespace ModAPI.ViewModels
             return ret;
         }
 
-        public void CheckIfIsModded()
+        public virtual void CheckIfIsModded()
         {
             var isModded = false;
             foreach (var library in ManagedLibraries)
@@ -185,7 +185,7 @@ namespace ModAPI.ViewModels
                 IsModded = isModded;
         }
 
-        private Configuration.Game GameConfiguration;
+        protected Configuration.Game GameConfiguration;
 
         public Game(Configuration.Game gameConfiguration)//string id, string name, string executeable)
         {
@@ -240,112 +240,8 @@ namespace ModAPI.ViewModels
                 Banner = new Bitmap(bannerFile);
         }
 
-        public void SetDirectory(string directory)
+        public virtual void SetDirectory(string directory)
         {
-            try
-            {
-                ModLibrary = null;
-                ManagedDirectory = null;
-                DataDirectory = null;
-                GameInfo = null;
-                Backup = null;
-                ManagedLibraries = null;
-
-                UnregisterWatchers();
-
-                var gameDirectory = Path.GetFullPath(directory);
-                Logger.Debug("Loading game at \"" + gameDirectory + "\"!");
-                if (!System.IO.Directory.Exists(gameDirectory))
-                    throw new ArgumentException("Provided directory doesn't exist.");
-                if (GameConfiguration.Executeables != null)
-                {
-                    bool gameFound = false;
-                    foreach (var executeable in GameConfiguration.Executeables)
-                    {
-                        var exec = System.IO.Path.Combine(gameDirectory, executeable + ".exe"); // @TODO checks for linux/mac
-                        Logger.Trace("Checking file \"" + exec + "\"");
-                        if (System.IO.File.Exists(exec))
-                        {
-                            if (FindGame(gameDirectory, Path.GetFileNameWithoutExtension(exec)))
-                                gameFound = true;
-                        }
-                    }
-                    if (!gameFound)
-                        throw new ArgumentException("Game not found at \"" + Path.GetFullPath(gameDirectory) + "\"");
-                }
-                else
-                {
-                    var files = Directory.GetFiles(gameDirectory);
-                    foreach (var file in files)
-                    {
-                        if (Path.GetExtension(file).ToLowerInvariant() == ".exe")
-                        {
-                            Logger.Trace("Checking file \"" + Path.GetFullPath(file) + "\"");
-                            if (FindGame(gameDirectory, Path.GetFileNameWithoutExtension(file)))
-                            {
-                                Logger.Trace("Found game for file \"" + Path.GetFullPath(file) + "\"");
-                                break;
-                            }
-                        }
-                    }
-                }
-                if (DisplayName == null)
-                    throw new ArgumentException("Provided directory doesn't contain a valid game.");
-
-                Logger.Trace("Finding managed libraries...");
-                FindManagedLibraries();
-
-                Logger.Trace("Getting game information...");
-                GameDirectory = gameDirectory;
-                GameInfo = new GameInfo(this);
-                Backup = new Backup(this);
-                ModLibrary = new ModLibrary(this);
-
-                CheckIfModable();
-
-                var modProjects = new ObservableCollection<ModProject.ModProject>();
-                var modProjectsDirectory = Path.Combine(GameDirectory, "ModAPI", "Projects");
-                if (!Directory.Exists(modProjectsDirectory))
-                    Directory.CreateDirectory(modProjectsDirectory);
-
-                var modProjectsFolders = Directory.GetDirectories(modProjectsDirectory);
-                foreach (var modProjectFolder in modProjectsFolders)
-                {
-                    try
-                    {
-                        modProjects.Add(new ModProject.ModProject(this, modProjectFolder));
-                    }
-                    catch (Exception e)
-                    {
-                        Logger.Error(e, "Error while loading project at " + modProjectFolder);
-                    }
-                }
-
-                ModProjects = modProjects;
-                var modsDirectory = Path.Combine(GameDirectory, "ModAPI", "Mods");
-                if (!Directory.Exists(modsDirectory))
-                    Directory.CreateDirectory(modsDirectory);
-                var modFiles = Directory.GetFiles(modsDirectory);
-                var mods = new ObservableCollection<Mod>();
-                foreach (var modFile in modFiles)
-                {
-                    var mod = CreateMod(modFile);
-                    if (mod != null)
-                        mods.Add(mod);
-                }
-                Mods = mods;
-
-                RegisterWatchers();
-                Logger.Debug("Game loaded successfully!");
-            }
-            catch (Exception ex)
-            {
-                Logger.Warn(ex, "Error while setting directory");
-                var autoPath = GameConfiguration.FindGamePath();
-                if (autoPath != null && directory != autoPath)
-                    GameDirectory = autoPath;
-                else throw;
-            }
         }
 
         public Mod CreateMod(string fileName)
@@ -366,12 +262,12 @@ namespace ModAPI.ViewModels
             return null;
         }
 
-        private void UnregisterWatchers()
+        protected void UnregisterWatchers()
         {
             if (ProjectsWatcher != null)
                 ProjectsWatcher.Dispose();
         }
-        private void RegisterWatchers()
+        protected void RegisterWatchers()
         {
             var modProjectsDirectory = Path.Combine(GameDirectory, "ModAPI", "Projects");
             ProjectsWatcher = new FileSystemWatcher(modProjectsDirectory);
@@ -484,43 +380,9 @@ namespace ModAPI.ViewModels
             ModsWatcher.EnableRaisingEvents = true;
         }
 
-        public void CheckIfModable()
+        public virtual void CheckIfModable()
         {
             IsModable = ModLibrary != null && ModLibrary.IsUpToDate && Backup != null && Backup.IsUpToDate;
-        }
-
-        private void FindManagedLibraries()
-        {
-            var managedLibraries = new ObservableCollection<Library>();
-            if (ManagedDirectory != null)
-            {
-                var files = Directory.GetFiles(ManagedDirectory);
-                foreach (var file in files)
-                {
-                    if (Path.GetExtension(file).ToLowerInvariant() == ".dll")
-                    {
-                        var assemblyName = Path.GetFileNameWithoutExtension(file);
-                        if (!ForbiddenAssemblies.Contains(assemblyName)) // || assemblyName.StartsWith("Unity")
-                        {
-                            managedLibraries.Add(new Library(this, Path.Combine(ManagedDirectory, assemblyName + ".dll")));
-                        }
-                    }
-                }
-            }
-            ManagedLibraries = managedLibraries;
-        }
-
-        private bool FindGame(string gameDirectory, string gameName)
-        {
-            var dataDirectory = new DirectoryInfo(Path.Combine(Path.GetFullPath(gameDirectory), gameName + "_Data"));
-            var managedDirectory = new DirectoryInfo(Path.Combine(dataDirectory.FullName, "Managed"));
-            if (dataDirectory.Exists && managedDirectory.Exists)
-            {
-                DataDirectory = dataDirectory.FullName;
-                ManagedDirectory = managedDirectory.FullName;
-                return true;
-            }
-            return false;
         }
     }
 }

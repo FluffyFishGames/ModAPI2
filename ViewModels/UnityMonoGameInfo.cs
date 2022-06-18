@@ -9,38 +9,38 @@ using ModAPI.Version;
 
 namespace ModAPI.ViewModels
 {
-    public class GameInfo : ViewModelBase
+    public class UnityMonoGameInfo : ViewModelBase
     {
         private Game _Game;
-        public Game Game { get => _Game; set => this.RaiseAndSetIfChanged<GameInfo, Game>(ref _Game, value, "Game"); }
+        public Game Game { get => _Game; set => this.RaiseAndSetIfChanged<UnityMonoGameInfo, Game>(ref _Game, value, "Game"); }
         private string _Name;
-        public string Name { get => _Name; set => this.RaiseAndSetIfChanged<GameInfo, string>(ref _Name, value, "Name"); }
+        public string Name { get => _Name; set => this.RaiseAndSetIfChanged<UnityMonoGameInfo, string>(ref _Name, value, "Name"); }
 
         private string _Developer;
-        public string Developer { get => _Developer; set => this.RaiseAndSetIfChanged<GameInfo, string>(ref _Developer, value, "Developer"); }
+        public string Developer { get => _Developer; set => this.RaiseAndSetIfChanged<UnityMonoGameInfo, string>(ref _Developer, value, "Developer"); }
 
         private string _Version;
-        public string Version { get => _Version; set => this.RaiseAndSetIfChanged<GameInfo, string>(ref _Version, value, "Version"); }
+        public string Version { get => _Version; set => this.RaiseAndSetIfChanged<UnityMonoGameInfo, string>(ref _Version, value, "Version"); }
 
         public UnityVersion _UnityVersion;
-        public UnityVersion UnityVersion { get => _UnityVersion; set => this.RaiseAndSetIfChanged<GameInfo, UnityVersion>(ref _UnityVersion, value, "UnityVersion"); }
+        public UnityVersion UnityVersion { get => _UnityVersion; set => this.RaiseAndSetIfChanged<UnityMonoGameInfo, UnityVersion>(ref _UnityVersion, value, "UnityVersion"); }
 
         public bool _SupportsLegacyInput;
-        public bool SupportsLegacyInput { get => _SupportsLegacyInput; set => this.RaiseAndSetIfChanged<GameInfo, bool>(ref _SupportsLegacyInput, value, "SupportsLegacyInput"); }
+        public bool SupportsLegacyInput { get => _SupportsLegacyInput; set => this.RaiseAndSetIfChanged<UnityMonoGameInfo, bool>(ref _SupportsLegacyInput, value, "SupportsLegacyInput"); }
 
         public bool _SupportsLegacyIMGUI;
-        public bool SupportsLegacyIMGUI { get => _SupportsLegacyIMGUI; set => this.RaiseAndSetIfChanged<GameInfo, bool>(ref _SupportsLegacyIMGUI, value, "SupportsLegacyIMGUI"); }
+        public bool SupportsLegacyIMGUI { get => _SupportsLegacyIMGUI; set => this.RaiseAndSetIfChanged<UnityMonoGameInfo, bool>(ref _SupportsLegacyIMGUI, value, "SupportsLegacyIMGUI"); }
 
         public bool _SupportsUI;
-        public bool SupportsUI { get => _SupportsUI; set => this.RaiseAndSetIfChanged<GameInfo, bool>(ref _SupportsUI, value, "SupportsUI"); }
+        public bool SupportsUI { get => _SupportsUI; set => this.RaiseAndSetIfChanged<UnityMonoGameInfo, bool>(ref _SupportsUI, value, "SupportsUI"); }
 
         public bool _SupportsTextMeshPro;
-        public bool SupportsTextMeshPro { get => _SupportsTextMeshPro; set => this.RaiseAndSetIfChanged<GameInfo, bool>(ref _SupportsTextMeshPro, value, "SupportsTextMeshPro"); }
+        public bool SupportsTextMeshPro { get => _SupportsTextMeshPro; set => this.RaiseAndSetIfChanged<UnityMonoGameInfo, bool>(ref _SupportsTextMeshPro, value, "SupportsTextMeshPro"); }
 
 
         private static NLog.Logger Logger = NLog.LogManager.GetLogger("GameInfo");
 
-        public GameInfo(Game game)
+        public UnityMonoGameInfo(Game game)
         {
             Game = game;
 

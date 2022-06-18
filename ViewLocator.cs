@@ -9,16 +9,40 @@ namespace ModAPI
     {
         public IControl Build(object data)
         {
-            var name = (data.GetType().FullName + "View").Replace("ViewModel", "View");
-            var type = Type.GetType(name);
+            var type = data.GetType();
+            var name = (type + "View").Replace("ViewModel", "View");
+            var viewType = Type.GetType(name);
 
-            if (type != null)
+            if (viewType != null)
             {
-                return (Control)Activator.CreateInstance(type)!;
+                return (Control)Activator.CreateInstance(viewType)!;
             }
             else
             {
-                return new TextBlock { Text = "Not Found: " + name };
+                if (type.BaseType != null)
+                    return Build(data, type.BaseType);
+                else 
+                    return new TextBlock { Text = "Not Found: " + name };
+            }
+        }
+
+        public IControl Build(object data, Type type)
+        {
+            if (type == null)
+                type = data.GetType();
+            var name = (type.FullName + "View").Replace("ViewModel", "View");
+            var viewType = Type.GetType(name);
+
+            if (viewType != null)
+            {
+                return (Control)Activator.CreateInstance(viewType)!;
+            }
+            else
+            {
+                if (type.BaseType != null)
+                    return Build(data, type.BaseType);
+                else
+                    return new TextBlock { Text = "Not Found: " + name };
             }
         }
 

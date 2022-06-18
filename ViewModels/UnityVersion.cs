@@ -912,6 +912,8 @@ namespace ModAPI.ViewModels
             Version = version;
         }
 
+        private static readonly int[] SearchPositions = new int[] { 0x14, 0x30 };
+
         public UnityVersion(Game game)
         {
             var gameManagersFile = new FileInfo(Path.Combine(Path.GetFullPath(game.DataDirectory), "globalgamemanagers"));
@@ -921,17 +923,22 @@ namespace ModAPI.ViewModels
             {
                 using (var stream = gameManagersFile.OpenRead())
                 {
-                    stream.Position = 0x14;
-                    byte[] buffer = new byte[20];
-                    stream.Read(buffer, 0, buffer.Length);
-                    for (var i = 0; i < buffer.Length; i++)
+                    var currentPos = 0;
+                    while ((Version == null || (!Version.StartsWith("2") && !Version.StartsWith("5"))) && currentPos < SearchPositions.Length)
                     {
-                        if (buffer[i] == 0x00)
+                        stream.Position = SearchPositions[currentPos];
+                        byte[] buffer = new byte[20];
+                        stream.Read(buffer, 0, buffer.Length);
+                        for (var i = 0; i < buffer.Length; i++)
                         {
-                            Version = System.Text.Encoding.UTF8.GetString(buffer, 0, i);
-                            Logger.Debug("Found version: " + Version);
-                            break;
+                            if (buffer[i] == 0x00)
+                            {
+                                Version = System.Text.Encoding.UTF8.GetString(buffer, 0, i);
+                                Logger.Debug("Found version: " + Version);
+                                break;
+                            }
                         }
+                        currentPos++;
                     }
                 }
                 if (Version == null)

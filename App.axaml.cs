@@ -23,7 +23,7 @@ namespace ModAPI
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
                 foreach (var g in Configuration.Games)
-                    Games.Add(g.Key, new Game(g.Value));
+                    Games.Add(g.Key, new UnityMonoGame(g.Value));
                 var context = new AppViewModel();
                 context.Games = new ObservableCollection<Game>();
                 foreach (var g in Games)

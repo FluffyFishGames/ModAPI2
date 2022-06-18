@@ -4,9 +4,9 @@ using Avalonia.Markup.Xaml;
 
 namespace ModAPI.Views
 {
-    public partial class GameInfoView : UserControl
+    public partial class UnityMonoGameInfoView : UserControl
     {
-        public GameInfoView()
+        public UnityMonoGameInfoView()
         {
             InitializeComponent();
         }
