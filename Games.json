@@ -1,0 +1,14 @@
+﻿{
+  "SunHaven": {
+    "name": "Sun Haven",
+    "type": "Unity",
+    "libraries": [
+      "Assembly-CSharp.dll",
+      "Assembly-CSharp-firstpass.dll",
+      "Unity.TextMeshPro.dll"
+    ],
+    "steam": {
+      "app_id": "1432860"
+    }
+  }
+}
