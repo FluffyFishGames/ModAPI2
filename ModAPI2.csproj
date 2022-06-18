@@ -16,7 +16,6 @@
     <Optimize>False</Optimize>
   </PropertyGroup>
   <ItemGroup>
-    <Folder Include="Models\" />
     <AvaloniaResource Include="Assets\**" />
     <AvaloniaXaml Remove="BaseModLib\**" />
     <Compile Remove="BaseModLib\**" />
@@ -24,6 +23,8 @@
     <None Remove="BaseModLib\**" />
     <None Remove=".gitignore" />
     <None Remove="BaseModLib.dll" />
+    <None Remove="Games\HokkoLife\banner.png" />
+    <None Remove="Games\HokkoLife\icon.png" />
     <None Remove="libs\tinyfiledialogs.dylib.lz4hc" />
     <None Remove="libs\tinyfiledialogs32.dll.lz4hc" />
     <None Remove="libs\tinyfiledialogs32.lib.lz4hc" />
@@ -48,13 +49,9 @@
     <None Remove="Resources\fonts\SF-Pro-Display-Ultralight.otf" />
     <None Remove="Resources\fonts\SF-Pro-Display-UltralightItalic.otf" />
     <None Remove="Resources\gradient.png" />
-    <None Remove="Resources\hokkolife\banner.png" />
-    <None Remove="Resources\hokkolife\icon.png" />
     <None Remove="Resources\icons\game.svg" />
     <None Remove="Resources\icons\package.svg" />
     <None Remove="Resources\logo_white.svg" />
-    <None Remove="Resources\sunhaven\banner.png" />
-    <None Remove="Resources\sunhaven\icon.png" />
   </ItemGroup>
   <ItemGroup>
     <AvaloniaResource Include="Resources\fonts\SF-Pro-Display-Black.otf" />
@@ -76,13 +73,17 @@
     <AvaloniaResource Include="Resources\fonts\SF-Pro-Display-Ultralight.otf" />
     <AvaloniaResource Include="Resources\fonts\SF-Pro-Display-UltralightItalic.otf" />
     <AvaloniaResource Include="Resources\gradient.png" />
-    <AvaloniaResource Include="Resources\hokkolife\banner.png" />
-    <AvaloniaResource Include="Resources\hokkolife\icon.png" />
     <AvaloniaResource Include="Resources\icons\game.svg" />
     <AvaloniaResource Include="Resources\icons\package.svg" />
     <AvaloniaResource Include="Resources\logo_white.svg" />
-    <AvaloniaResource Include="Resources\sunhaven\banner.png" />
-    <AvaloniaResource Include="Resources\sunhaven\icon.png" />
+    <EmbeddedResource Include="Games\HokkoLife\banner.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Games\HokkoLife\icon.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Games\SunHaven\banner.png" />
+    <EmbeddedResource Include="Games\SunHaven\icon.png" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="BaseModLib.dll" />
@@ -117,6 +118,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <None Update="Games.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="libs\tinyfiledialogs.dylib">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -135,5 +139,8 @@
     <None Update="nlog.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Models\" />
   </ItemGroup>
 </Project>

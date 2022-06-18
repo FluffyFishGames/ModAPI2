@@ -7,6 +7,7 @@ using System.IO;
 using System.Reflection;
 using K4os.Compression.LZ4;
 using K4os.Compression.LZ4.Streams;
+using System.Text.RegularExpressions;
 
 namespace ModAPI
 {
@@ -23,10 +24,22 @@ namespace ModAPI
                 else
                     Extract("ModAPI.libs.tinyfiledialogs32.dll.lz4hc", Path.GetFullPath(Configuration.DataDirectory + "/libs/tinyfiledialogs32.dll"));
             }
+            var names = typeof(Embedded).Assembly.GetManifestResourceNames();
+            var regex = new Regex("ModAPI\\.Games\\.([^\\.]+)\\.(.*)");
+            foreach (var name in names)
+            {
+                var match = regex.Match(name);
+                if (match.Success)
+                {
+                    Extract(name, "Games/" + match.Groups[1].Value + "/" + match.Groups[2].Value, false);
+                }
+            }
         }
 
-        public static void Extract(string resourceName, string filePath)
+        public static void Extract(string resourceName, string filePath, bool overwrite = true)
         {
+            if (!overwrite && System.IO.File.Exists(filePath))
+                return;
             Logger.Info($"Extracting {resourceName}...");
             try
             {

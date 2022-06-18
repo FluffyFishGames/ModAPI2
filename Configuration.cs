@@ -9,15 +9,15 @@ using Newtonsoft.Json.Linq;
 
 namespace ModAPI
 {
-    class Configuration
+    public partial class Configuration
     {
         private static NLog.ILogger Logger = NLog.LogManager.GetLogger("Configuration");
         private static bool Loading = false;
         private static JObject ConfigObject;
+        public static Dictionary<string, Configuration.Game> Games = new Dictionary<string, Configuration.Game>();
 
         static Configuration()
         {
-
             var configFile = Path.Combine(DataDirectory, "config.json");
             Loading = true;
             if (File.Exists(configFile))
@@ -32,13 +32,24 @@ namespace ModAPI
                 }
             }
 
-            Games = new List<Game>()
+            /*Games = new List<Game>()
             {
                 new Game("hokkolife", "Hokko Life", "Hokko Life.exe"),
                 new Game("sunhaven", "Sun Haven", "Sun Haven.exe")
-            };
+            };*/
 
             Loading = false;
+
+            if (File.Exists("Games.json"))
+            {
+                var games = JObject.Parse(File.ReadAllText("Games.json"));
+                foreach (var game in games)
+                {
+                    if (game.Value is JObject j)
+                        Games.Add(game.Key, new Configuration.Game(game.Key, j));
+                }
+            }
+            else Logger.Warn("Games.json does not exist.");
         }
 
         public static JObject GetGameConfiguration(string id)
@@ -56,7 +67,7 @@ namespace ModAPI
             JObject config = new JObject();
             foreach (var game in Games)
             {
-                config[game.ID] = game.GetConfiguration();
+                config[game.Key] = App.Instance.Games[game.Key].GetConfiguration();
             }
             var configFile = Path.Combine(DataDirectory, "config.json");
             File.WriteAllText(configFile, config.ToString());
@@ -80,7 +91,5 @@ namespace ModAPI
                 return _DataDirectory;
             }
         }
-
-        public static List<Game> Games;
     }
 }

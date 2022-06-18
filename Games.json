@@ -1,14 +1,42 @@
 ﻿{
   "SunHaven": {
     "name": "Sun Haven",
+    "executables": ["Sun Haven"],
     "type": "Unity",
-    "libraries": [
-      "Assembly-CSharp.dll",
-      "Assembly-CSharp-firstpass.dll",
-      "Unity.TextMeshPro.dll"
-    ],
     "steam": {
       "app_id": "1432860"
+    }
+  },
+  "LittleWitchInTheWoods": {
+    "name": "Little Witch in the Woods",
+    "executeables": ["LWIW", "Little Witch in the Woods"],
+    "type": "Unity",
+    "steam": {
+      "app_id": "1594940"
+    }
+  },
+  "CoreKeeper": {
+    "name": "Core Keeper",
+    "type": "Unity",
+    "executeables": ["CoreKeeper"],
+    "steam": {
+      "app_id": "1621690"
+    }
+  },
+  "MyTimeAtSandrock": {
+    "name": "My Time at Sandrock",
+    "type": "Unity",
+    "executeables": ["Sandrock"],
+    "steam": {
+      "app_id": "1084600"
+    }
+  },
+  "HokkoLife": {
+    "name": "Hokko Life",
+    "type": "Unity",
+    "executeables": ["Hokko Life"],
+    "steam": {
+      "app_id": "824000"
     }
   }
 }

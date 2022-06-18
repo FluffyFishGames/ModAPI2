@@ -77,44 +77,21 @@ namespace ModAPI.ViewModels
         }
 
         public List<GameTab> Tabs { get; set; }
-        private IImage _ImageIcon;
-        public IImage ImageIcon 
-        { 
-            get 
-            { 
-                if (_ImageIcon == null)
-                {
-                    var assets = AvaloniaLocator.Current.GetService<IAssetLoader>();
-                    var bitmap = new Bitmap(assets.Open(new Uri("avares://ModAPI2/Resources/" + ID + "/icon.png")));
-                    _ImageIcon = bitmap;
-                }
-                return _ImageIcon;
-            } 
-        }
 
         private IImage _Banner;
-        public IImage Banner 
-        { 
-            get 
-            {
-                if (_Banner == null)
-                {
-                    var assets = AvaloniaLocator.Current.GetService<IAssetLoader>();
-                    var bitmap = new Bitmap(assets.Open(new Uri("avares://ModAPI2/Resources/" + ID + "/banner.png")));
-                    _Banner = bitmap;
-                }
-                return _Banner;
-            } 
-        }
+        public IImage Banner { get => _Banner; set => this.RaiseAndSetIfChanged<Game, IImage>(ref _Banner, value, "Banner"); }
+
+        private IImage _ImageIcon;
+        public IImage ImageIcon { get => _ImageIcon; set => this.RaiseAndSetIfChanged<Game, IImage>(ref _ImageIcon, value, "ImageIcon"); }
 
         private string _ID;
-        public string ID { get => _ID; set => this.RaiseAndSetIfChanged<Game, string>(ref _ID, value, "ID"); }
+        public string ID { get => GameConfiguration.ID; }
 
         private string _DisplayName;
-        public string DisplayName { get => _DisplayName; set => this.RaiseAndSetIfChanged<Game, string>(ref _DisplayName, value, "DisplayName"); }
+        public string DisplayName { get => GameConfiguration.Name; }
 
-        private string _Executeable;
-        public string Executeable { get => _Executeable; set => this.RaiseAndSetIfChanged<Game, string>(ref _Executeable, value, "Executeable"); }
+        //private string _Executeable;
+        //public string Executeable { get => _Executeable; set => this.RaiseAndSetIfChanged<Game, string>(ref _Executeable, value, "Executeable"); }
 
         private string _GameDirectory;
         public string GameDirectory 
@@ -206,12 +183,11 @@ namespace ModAPI.ViewModels
                 IsModded = isModded;
         }
 
-        public Game(string id, string name, string executeable)
+        private Configuration.Game GameConfiguration;
+
+        public Game(Configuration.Game gameConfiguration)//string id, string name, string executeable)
         {
-            ID = id;
-            DisplayName = name;
-            Executeable = executeable; 
-            
+            GameConfiguration = gameConfiguration;
             this.PropertyChanged += GameViewModel_PropertyChanged;
 
             var tabs = new List<GameTab>();
@@ -223,6 +199,18 @@ namespace ModAPI.ViewModels
             var config = Configuration.GetGameConfiguration(ID);
             if (config != null)
                 this.SetConfiguration(config);
+
+            LoadImages();
+        }
+
+        private void LoadImages()
+        {
+            var iconFile = $"Games/{this.GameConfiguration.ID}/icon.png";
+            var bannerFile = $"Games/{this.GameConfiguration.ID}/banner.png";
+            if (System.IO.File.Exists(iconFile))
+                ImageIcon = new Bitmap(iconFile);
+            if (System.IO.File.Exists(bannerFile))
+                Banner = new Bitmap(bannerFile);
         }
 
         public void SetDirectory(string directory)
@@ -240,15 +228,21 @@ namespace ModAPI.ViewModels
             Logger.Debug("Loading game at \"" + gameDirectory + "\"!");
             if (!System.IO.Directory.Exists(gameDirectory))
                 throw new ArgumentException("Provided directory doesn't exist.");
-            if (_Executeable != null)
+            if (GameConfiguration.Executeables != null)
             {
-                var exec = System.IO.Path.Combine(gameDirectory, _Executeable);
-                if (System.IO.File.Exists(exec))
+                bool gameFound = false;
+                foreach (var executeable in GameConfiguration.Executeables)
                 {
-                    Logger.Trace("Checking file \"" + _Executeable + "\"");
-                    FindGame(gameDirectory, Path.GetFileNameWithoutExtension(_Executeable));
+                    var exec = System.IO.Path.Combine(gameDirectory, executeable);
+                    if (System.IO.File.Exists(exec))
+                    {
+                        Logger.Trace("Checking file \"" + exec + "\"");
+                        FindGame(gameDirectory, Path.GetFileNameWithoutExtension(exec));
+                        gameFound = true;
+                    }
                 }
-                else throw new ArgumentException("Game not found at \"" + Path.GetFullPath(gameDirectory) + "\"");
+                if (!gameFound)
+                    throw new ArgumentException("Game not found at \"" + Path.GetFullPath(gameDirectory) + "\"");
             }
             else
             {
@@ -487,10 +481,6 @@ namespace ModAPI.ViewModels
             {
                 DataDirectory = dataDirectory.FullName;
                 ManagedDirectory = managedDirectory.FullName;
-                if (Executeable == null)
-                {
-                    DisplayName = gameName;
-                }
             }
         }
     }
