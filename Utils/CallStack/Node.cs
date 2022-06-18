@@ -40,9 +40,10 @@ namespace ModAPI.Utils
             {
                 var children = this.Children.ToList();
 
-                for (var i = 0; i < CalledMethod.Body.Instructions.Count; i++)
+
+                for (var j = 0; j < children.Count; j++)
                 {
-                    for (var j = 0; j < children.Count; j++)
+                    for (var i = 0; i < CalledMethod.Body.Instructions.Count; i++)
                     {
                         if (children[j].Instruction == CalledMethod.Body.Instructions[i])
                         {
@@ -50,11 +51,12 @@ namespace ModAPI.Utils
                             {
                                 CalledMethod = children[j].CalledMethod,
                                 Method = newMethod,
-                                Instruction = instructions[j],
+                                Instruction = instructions[i],
                                 Children = children[j].Children,
                                 Parent = this,
                                 Type = children[j].Type,
                             };
+                            continue;
                         }
                     }
                 }
@@ -76,14 +78,7 @@ namespace ModAPI.Utils
             {
                 if (Type == CallStack.Node.NodeType.Call)
                 {
-                    if (scope.Type == CallStackCopyScope.TypeEnum.METHOD)
-                    {
-                        //ReplaceMethodCallWithNextCall(Method, context.Delegate, scope.ChainParam, scope.NumParam, Instruction);
-                    }
-                    else if (scope.Type == CallStackCopyScope.TypeEnum.DISPLAY_CLASS)
-                    {
-                        //ReplaceMethodCallWithNextCall(Method, context.Delegate, scope.DisplayClass.ChainMethodsField, scope.DisplayClass.ChainNumField, Instruction);
-                    }
+                    AddParametersToCall(context, scope);
                 }
                 // method called is in a display class or is a compiler generated method
                 else if (CalledMethod.Name.StartsWith("<") && !CalledMethod.Name.StartsWith("<>n__"))
@@ -193,7 +188,7 @@ namespace ModAPI.Utils
                     var newBody = method.Body;
                     CalledMethod.Body.Copy(newBody, context.Module);
                     displayClass.Type.Methods.Add(method);
-                    AddCopiedMethod(context, CalledMethod, method);
+                    newMethod = AddCopiedMethod(context, CalledMethod, method);
 
                     // modify method
                     var newMethodProcessor = newBody.GetILProcessor();
@@ -220,12 +215,12 @@ namespace ModAPI.Utils
                 foreach (var child in children)
                 {
                     // we keep being in the same display class for now
+                    child.Method.Body.SimplifyMacros();
                     child.Extend(context, newScope);
+                    child.Method.Body.Optimize();
                 }
 
                 var body = Method.Body;
-                body.SimplifyMacros();
-
                 var displayClassVar = new VariableDefinition(context.Module.ImportReference(displayClass.Type));
                 body.Variables.Insert(0, displayClassVar);
                 var processor = body.GetILProcessor();
@@ -248,8 +243,6 @@ namespace ModAPI.Utils
                 inst.Previous.OpCode = OpCodes.Ldloc;
                 inst.Previous.Operand = displayClassVar;
                 inst.Operand = context.Module.ImportReference(newMethod.Item1);
-
-                body.Optimize();
             }
 
             private void ExtendDisplayMethodFromDisplayClass(CallStackCopyContext context, CallStackCopyScope scope)
@@ -274,7 +267,7 @@ namespace ModAPI.Utils
                     var newBody = method.Body;
                     CalledMethod.Body.Copy(newBody);
                     scope.DisplayClass.Type.Methods.Add(method);
-                    AddCopiedMethod(context, CalledMethod, method);
+                    newMethod = AddCopiedMethod(context, CalledMethod, method);
 
                     // modify method
                     var newMethodProcessor = newBody.GetILProcessor();
@@ -294,7 +287,10 @@ namespace ModAPI.Utils
                 foreach (var child in children)
                 {
                     // we keep being in the same scope for now
+                    child.Method.Body.SimplifyMacros();
                     child.Extend(context, scope);
+                    child.Method.Body.Optimize();
+
                 }
 
                 var body = Method.Body;
@@ -340,8 +336,6 @@ namespace ModAPI.Utils
                 if (!sameDisplayClass)
                 {
                     var body = method.Body;
-                    body.SimplifyMacros();
-
                     var processor = Method.Body.GetILProcessor();
                     Instruction.Operand = context.Module.ImportReference(newDisplayClass.Methods[CalledMethod.Name]);
 
@@ -402,8 +396,6 @@ namespace ModAPI.Utils
                             }
                         }
                     }
-
-                    body.Optimize();
                 }
 
                 var newScope = new CallStackCopyScope()
@@ -413,10 +405,12 @@ namespace ModAPI.Utils
                     OriginalName = displayClass.Type.FullName
                 };
 
-                foreach (var n in Children)
+                foreach (var child in Children)
                 {
                     // we keep being in the same display class for now
-                    n.Extend(context, newScope);
+                    child.Method.Body.SimplifyMacros();
+                    child.Extend(context, newScope);
+                    child.Method.Body.Optimize();
                 }
             }
 
@@ -462,19 +456,49 @@ namespace ModAPI.Utils
                 foreach (var child in Children)
                 {
                     // we keep being in the same display class for now
+                    child.Method.Body.SimplifyMacros();
                     child.Extend(context, newScope);
+                    child.Method.Body.Optimize();
                 }
                 // ordinary method
             }
 
-            private void AddCopiedMethod(CallStackCopyContext context, MethodDefinition original, MethodDefinition copy)
+            private void AddParametersToCall(CallStackCopyContext context, CallStackCopyScope scope)
+            {
+                if (context.Replacer == null)
+                {
+                    var body = Method.Body;
+                    var processor = body.GetILProcessor();
+
+                    if (scope.Type == CallStackCopyScope.TypeEnum.METHOD)
+                    {                        
+                        foreach (var param in context.AddParameters)
+                        {
+                            processor.InsertBefore(Instruction, processor.Create(OpCodes.Ldarg, scope.Method.AddedParameters[param.Key]));
+                        }
+                    }
+                    else if (scope.Type == CallStackCopyScope.TypeEnum.DISPLAY_CLASS)
+                    {
+                        foreach (var param in context.AddParameters)
+                        {
+                            processor.InsertBefore(Instruction, processor.Create(OpCodes.Ldarg_0));
+                            processor.InsertBefore(Instruction, processor.Create(OpCodes.Ldfld, scope.DisplayClass.AddedFields[param.Key]));
+                        }
+                    }
+                }
+                else
+                {
+                    context.Replacer(this, context, scope);
+                }
+            }
+
+            private (MethodDefinition, Instruction[]) AddCopiedMethod(CallStackCopyContext context, MethodDefinition original, MethodDefinition copy)
             {
                 var newInstructions = new Instruction[original.Body.Instructions.Count];
-                for (var i = 0; i < original.Body.Instructions.Count; i++)
-                    newInstructions[i] = copy.Body.Instructions[i];
-
-                context.Methods.Add(copy.FullName, (copy, newInstructions));
+                var m = (copy, copy.Body.Instructions.ToArray());
+                context.Methods.Add(copy.FullName, m);
                 context.MethodMappings.Add(original.FullName, copy.FullName);
+                return m;
             }
         }
     }

@@ -1,5 +1,6 @@
 ﻿using Mono.Cecil;
 using Mono.Cecil.Cil;
+using Mono.Cecil.Rocks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +11,7 @@ namespace ModAPI.Utils
 {
     internal partial class CallStack
     {
-        public static void Extend(MethodDefinition method, ModLibrary modLibrary, Dictionary<string, TypeReference> addParameters, List<Node> nodes)
+        public static void Extend(MethodDefinition method, ModLibrary modLibrary, Dictionary<string, TypeReference> addParameters, List<Node> nodes, CallStackCopyContext.CallReplacer Replacer = null)
         {
             var module = method.Module;
             CallStackCopyScope scope = null;
@@ -40,18 +41,22 @@ namespace ModAPI.Utils
             }
 
             var type = method.DeclaringType;
+            var context = new CallStackCopyContext()
+            {
+                Type = type,
+                Module = type.Module,
+                ModLibrary = modLibrary,
+                AddParameters = addParameters,
+                HighestDisplayClassNum = MonoHelper.GetHighestDisplayClassGroup(type),
+                Replacer = Replacer
+            };
+
+            method.Body.SimplifyMacros();
             foreach (var node in nodes)
             {
-                node.Extend(new CallStackCopyContext()
-                {
-                    Type = type,
-                    Module = type.Module,
-                    ModLibrary = modLibrary,
-                    AddParameters = addParameters,
-                    HighestDisplayClassNum = MonoHelper.GetHighestDisplayClassGroup(type)
-                },
-                scope);
+                node.Extend(context, scope);
             }
+            method.Body.Optimize();
         }
 
         public static List<Node> FindCallsTo(MethodDefinition method, MethodReference callTo)

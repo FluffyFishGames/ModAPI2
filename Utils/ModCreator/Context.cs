@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using Mono.Cecil.Rocks;
+using Mono.Cecil.Cil;
 
 namespace ModAPI.Utils
 {
@@ -272,7 +273,7 @@ namespace ModAPI.Utils
                 typeName = null;
                 fieldName = null;
                 propertyName = null;
-                injectionAttribute = method.CustomAttributes.First(a => a.AttributeType.FullName == "ModAPI.Injection");
+                injectionAttribute = method.CustomAttributes.FirstOrDefault(a => a.AttributeType.FullName == "ModAPI.Injection");
                 if (injectionAttribute != null)
                 {
                     injectionType = (Injection.Type)injectionAttribute.ConstructorArguments[0].Value;
@@ -307,7 +308,7 @@ namespace ModAPI.Utils
                 TypeReference baseTypeReference = null;
 
                 // check if we should parse this method
-                var inheritanceAttribute = type.CustomAttributes.First(c => c.AttributeType.FullName == "ModAPI.Inheritance");
+                var inheritanceAttribute = type.CustomAttributes.FirstOrDefault(c => c.AttributeType.FullName == "ModAPI.Inheritance");
                 if (inheritanceAttribute != null)
                 {
                     Logger.Info($"Ignoring type {type.FullName} because ModAPI.Inheritance attribute is present.");
@@ -432,19 +433,49 @@ namespace ModAPI.Utils
                             {
                                 var @delegate = ModLibrary.Delegates[baseMethod.FullName];
                                 
-                                method.Body.SimplifyMacros();
-                                var chainParam = new ParameterDefinition("__modapi_chain_methods", ParameterAttributes.None, method.Module.ImportReference(@delegate.Type.MakeArrayType()));
-                                var numParam = new ParameterDefinition("__modapi_chain_num", ParameterAttributes.None, method.Module.TypeSystem.Int32);
-                                method.Parameters.Add(chainParam);
-                                method.Parameters.Add(numParam);
-
                                 var routes = CallStack.FindCallsTo(method, baseMethod);
                                 CallStack.Extend(method, ModLibrary, new Dictionary<string, TypeReference>() {
-                                    { "num", module.TypeSystem.Int32 },
-                                    { "chain", @delegate.Type.MakeArrayType() }
-                                }, routes);
-                                //ExtendRoutesToBaseCall(this, type, routes, method, chainParam, numParam, @delegate, highestDisplayClass);
-                                method.Body.Optimize();
+                                    { "__modapi_chain_methods", @delegate.Type.MakeArrayType() },
+                                    { "__modapi_chain_num", module.TypeSystem.Int32 }
+                                }, routes, (node, context, scope) => {
+                                    var method = node.Method;
+                                    var body = method.Body;
+                                    var processor = body.GetILProcessor();
+                                    var instruction = node.Instruction;
+                                    var firstInstruction = processor.WalkBack(instruction);
+
+                                    if (scope.Type == CallStack.CallStackCopyScope.TypeEnum.DISPLAY_CLASS)
+                                    { 
+                                        processor.InsertBefore(firstInstruction, processor.Create(OpCodes.Ldarg_0));
+                                        processor.InsertBefore(firstInstruction, processor.Create(OpCodes.Ldfld, scope.DisplayClass.AddedFields["__modapi_chain_methods"]));
+                                        processor.InsertBefore(firstInstruction, processor.Create(OpCodes.Ldarg_0));
+                                        processor.InsertBefore(firstInstruction, processor.Create(OpCodes.Ldfld, scope.DisplayClass.AddedFields["__modapi_chain_num"]));
+                                        processor.InsertBefore(firstInstruction, processor.Create(OpCodes.Ldelem_Ref));
+
+                                        processor.InsertBefore(instruction, processor.Create(OpCodes.Ldarg_0));
+                                        processor.InsertBefore(instruction, processor.Create(OpCodes.Ldfld, scope.DisplayClass.AddedFields["__modapi_chain_methods"]));
+                                        processor.InsertBefore(instruction, processor.Create(OpCodes.Ldarg_0));
+                                        processor.InsertBefore(instruction, processor.Create(OpCodes.Ldfld, scope.DisplayClass.AddedFields["__modapi_chain_num"]));
+                                        processor.InsertBefore(instruction, processor.Create(OpCodes.Ldc_I4_1));
+                                        processor.InsertBefore(instruction, processor.Create(OpCodes.Add));
+
+                                        instruction.Operand = method.DeclaringType.Module.ImportReference(@delegate.Invoke);
+                                    }
+
+                                    if (scope.Type == CallStack.CallStackCopyScope.TypeEnum.METHOD)
+                                    {
+                                        processor.InsertBefore(firstInstruction, processor.Create(OpCodes.Ldarg, scope.Method.AddedParameters["__modapi_chain_methods"]));
+                                        processor.InsertBefore(firstInstruction, processor.Create(OpCodes.Ldarg, scope.Method.AddedParameters["__modapi_chain_num"]));
+                                        processor.InsertBefore(firstInstruction, processor.Create(OpCodes.Ldelem_Ref));
+
+                                        processor.InsertBefore(instruction, processor.Create(OpCodes.Ldarg, scope.Method.AddedParameters["__modapi_chain_methods"]));
+                                        processor.InsertBefore(instruction, processor.Create(OpCodes.Ldarg, scope.Method.AddedParameters["__modapi_chain_num"]));
+                                        processor.InsertBefore(instruction, processor.Create(OpCodes.Ldc_I4_1));
+                                        processor.InsertBefore(instruction, processor.Create(OpCodes.Add));
+
+                                        instruction.Operand = method.DeclaringType.Module.ImportReference(@delegate.Invoke);
+                                    }
+                                });
                             }
                         }
                         if (injectionType == Injection.Type.Replace)

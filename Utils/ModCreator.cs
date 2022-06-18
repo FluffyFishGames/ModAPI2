@@ -38,45 +38,5 @@ namespace ModAPI.Utils
                 context.ProgressHandler.Error(ex.Message);
             }
         }
-
-        private static void ReplaceMethodCallWithNextCall(MethodDefinition method, MonoHelper.Delegate @delegate, FieldDefinition chain, FieldDefinition num, Instruction instruction)
-        {
-            var processor = method.Body.GetILProcessor();
-
-            var firstInstruction = processor.WalkBack(instruction);
-
-            processor.InsertBefore(firstInstruction, processor.Create(OpCodes.Ldarg_0));
-            processor.InsertBefore(firstInstruction, processor.Create(OpCodes.Ldfld, chain));
-            processor.InsertBefore(firstInstruction, processor.Create(OpCodes.Ldarg_0));
-            processor.InsertBefore(firstInstruction, processor.Create(OpCodes.Ldfld, num));
-            processor.InsertBefore(firstInstruction, processor.Create(OpCodes.Ldelem_Ref));
-
-            processor.InsertBefore(instruction, processor.Create(OpCodes.Ldarg_0));
-            processor.InsertBefore(instruction, processor.Create(OpCodes.Ldfld, chain));
-            processor.InsertBefore(instruction, processor.Create(OpCodes.Ldarg_0));
-            processor.InsertBefore(instruction, processor.Create(OpCodes.Ldfld, num));
-            processor.InsertBefore(instruction, processor.Create(OpCodes.Ldc_I4_1));
-            processor.InsertBefore(instruction, processor.Create(OpCodes.Add));
-
-            instruction.Operand = method.DeclaringType.Module.ImportReference(@delegate.Invoke);
-        }
-
-        private static void ReplaceMethodCallWithNextCall(MethodDefinition method, MonoHelper.Delegate @delegate, ParameterDefinition chain, ParameterDefinition num, Instruction instruction)
-        {
-            var processor = method.Body.GetILProcessor();
-
-            var firstInstruction = processor.WalkBack(instruction);
-
-            processor.InsertBefore(firstInstruction, processor.Create(OpCodes.Ldarg, chain));
-            processor.InsertBefore(firstInstruction, processor.Create(OpCodes.Ldarg, num));
-            processor.InsertBefore(firstInstruction, processor.Create(OpCodes.Ldelem_Ref));
-
-            processor.InsertBefore(instruction, processor.Create(OpCodes.Ldarg, chain));
-            processor.InsertBefore(instruction, processor.Create(OpCodes.Ldarg, num));
-            processor.InsertBefore(instruction, processor.Create(OpCodes.Ldc_I4_1));
-            processor.InsertBefore(instruction, processor.Create(OpCodes.Add));
-
-            instruction.Operand = method.DeclaringType.Module.ImportReference(@delegate.Invoke);
-        }
     }
 }

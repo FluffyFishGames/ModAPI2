@@ -12,11 +12,14 @@ namespace ModAPI.Utils
     {
         public class CallStackCopyContext
         {
+            public delegate void CallReplacer(Node node, CallStackCopyContext context, CallStackCopyScope scope);
+            public CallReplacer Replacer;
             public Dictionary<string, string> ClassMappings = new();
             public Dictionary<string, string> MethodMappings = new();
             public Dictionary<string, DisplayClass> DisplayClasses = new();
             public Dictionary<string, (MethodDefinition, Instruction[])> Methods = new();
             public Dictionary<string, TypeReference> AddParameters = new();
+            
             public ModLibrary ModLibrary;
             public TypeDefinition Type;
             public ModuleDefinition Module;
