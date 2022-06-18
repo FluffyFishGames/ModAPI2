@@ -152,6 +152,8 @@ namespace ModAPI.ViewModels
                 GameDirectory = config["path"].ToString();
         }
 
+        private bool _Loaded = false;
+        public bool Loaded { get => _Loaded; set => this.RaiseAndSetIfChanged<Game, bool>(ref _Loaded, value); }
         public JObject GetConfiguration()
         {
             JObject ret = new JObject();
@@ -187,128 +189,163 @@ namespace ModAPI.ViewModels
 
         public Game(Configuration.Game gameConfiguration)//string id, string name, string executeable)
         {
-            GameConfiguration = gameConfiguration;
-            this.PropertyChanged += GameViewModel_PropertyChanged;
-
             var tabs = new List<GameTab>();
             tabs.Add(new GameSetupTab(this));
             tabs.Add(new GameModsTab(this));
             tabs.Add(new GameModProjectsTab(this));
+
             Tabs = tabs;
 
-            var config = Configuration.GetGameConfiguration(ID);
-            if (config != null)
-                this.SetConfiguration(config);
-
-            LoadImages();
+            GameConfiguration = gameConfiguration;
+            this.PropertyChanged += GameViewModel_PropertyChanged;
+            LoadIcon();
         }
 
-        private void LoadImages()
+        public void Load()
+        {
+            if (!Loaded)
+            {
+                System.Threading.Tasks.Task.Run(() =>
+                {
+                    var config = Configuration.GetGameConfiguration(ID);
+                    if (config != null)
+                        this.SetConfiguration(config);
+                    else
+                    {
+                        var autoPath = GameConfiguration.FindGamePath();
+                        if (autoPath != null && this.GameDirectory != autoPath)
+                            this.GameDirectory = autoPath;
+                    }
+
+                    Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                    {
+                        LoadBanner();
+                        Loaded = true;
+                    });
+                });
+            }
+        }
+
+        private void LoadIcon()
         {
             var iconFile = $"Games/{this.GameConfiguration.ID}/icon.png";
-            var bannerFile = $"Games/{this.GameConfiguration.ID}/banner.png";
             if (System.IO.File.Exists(iconFile))
                 ImageIcon = new Bitmap(iconFile);
+        }
+
+        private void LoadBanner()
+        {
+            var bannerFile = $"Games/{this.GameConfiguration.ID}/banner.png";
             if (System.IO.File.Exists(bannerFile))
                 Banner = new Bitmap(bannerFile);
         }
 
         public void SetDirectory(string directory)
         {
-            ModLibrary = null;
-            ManagedDirectory = null;
-            DataDirectory = null;
-            GameInfo = null;
-            Backup = null;
-            ManagedLibraries = null;
-
-            UnregisterWatchers();
-
-            var gameDirectory = Path.GetFullPath(directory);
-            Logger.Debug("Loading game at \"" + gameDirectory + "\"!");
-            if (!System.IO.Directory.Exists(gameDirectory))
-                throw new ArgumentException("Provided directory doesn't exist.");
-            if (GameConfiguration.Executeables != null)
+            try
             {
-                bool gameFound = false;
-                foreach (var executeable in GameConfiguration.Executeables)
+                ModLibrary = null;
+                ManagedDirectory = null;
+                DataDirectory = null;
+                GameInfo = null;
+                Backup = null;
+                ManagedLibraries = null;
+
+                UnregisterWatchers();
+
+                var gameDirectory = Path.GetFullPath(directory);
+                Logger.Debug("Loading game at \"" + gameDirectory + "\"!");
+                if (!System.IO.Directory.Exists(gameDirectory))
+                    throw new ArgumentException("Provided directory doesn't exist.");
+                if (GameConfiguration.Executeables != null)
                 {
-                    var exec = System.IO.Path.Combine(gameDirectory, executeable);
-                    if (System.IO.File.Exists(exec))
+                    bool gameFound = false;
+                    foreach (var executeable in GameConfiguration.Executeables)
                     {
+                        var exec = System.IO.Path.Combine(gameDirectory, executeable + ".exe"); // @TODO checks for linux/mac
                         Logger.Trace("Checking file \"" + exec + "\"");
-                        FindGame(gameDirectory, Path.GetFileNameWithoutExtension(exec));
-                        gameFound = true;
-                    }
-                }
-                if (!gameFound)
-                    throw new ArgumentException("Game not found at \"" + Path.GetFullPath(gameDirectory) + "\"");
-            }
-            else
-            {
-                var files = Directory.GetFiles(gameDirectory);
-                foreach (var file in files)
-                {
-                    if (Path.GetExtension(file).ToLowerInvariant() == ".exe")
-                    {
-                        Logger.Trace("Checking file \"" + Path.GetFullPath(file) + "\"");
-                        FindGame(gameDirectory, Path.GetFileNameWithoutExtension(file));
-                        if (DisplayName != null)
+                        if (System.IO.File.Exists(exec))
                         {
-                            Logger.Trace("Found game for file \"" + Path.GetFullPath(file) + "\"");
-                            break;
+                            if (FindGame(gameDirectory, Path.GetFileNameWithoutExtension(exec)))
+                                gameFound = true;
+                        }
+                    }
+                    if (!gameFound)
+                        throw new ArgumentException("Game not found at \"" + Path.GetFullPath(gameDirectory) + "\"");
+                }
+                else
+                {
+                    var files = Directory.GetFiles(gameDirectory);
+                    foreach (var file in files)
+                    {
+                        if (Path.GetExtension(file).ToLowerInvariant() == ".exe")
+                        {
+                            Logger.Trace("Checking file \"" + Path.GetFullPath(file) + "\"");
+                            if (FindGame(gameDirectory, Path.GetFileNameWithoutExtension(file)))
+                            {
+                                Logger.Trace("Found game for file \"" + Path.GetFullPath(file) + "\"");
+                                break;
+                            }
                         }
                     }
                 }
-            }
-            if (DisplayName == null)
-                throw new ArgumentException("Provided directory doesn't contain a valid game.");
+                if (DisplayName == null)
+                    throw new ArgumentException("Provided directory doesn't contain a valid game.");
 
-            Logger.Trace("Finding managed libraries...");
-            FindManagedLibraries();
+                Logger.Trace("Finding managed libraries...");
+                FindManagedLibraries();
 
-            Logger.Trace("Getting game information...");
-            GameDirectory = gameDirectory;
-            GameInfo = new GameInfo(this);
-            Backup = new Backup(this);
-            ModLibrary = new ModLibrary(this);
+                Logger.Trace("Getting game information...");
+                GameDirectory = gameDirectory;
+                GameInfo = new GameInfo(this);
+                Backup = new Backup(this);
+                ModLibrary = new ModLibrary(this);
 
-            CheckIfModable();
+                CheckIfModable();
 
-            var modProjects = new ObservableCollection<ModProject.ModProject>();
-            var modProjectsDirectory = Path.Combine(GameDirectory, "ModAPI", "Projects");
-            if (!Directory.Exists(modProjectsDirectory))
-                Directory.CreateDirectory(modProjectsDirectory);
+                var modProjects = new ObservableCollection<ModProject.ModProject>();
+                var modProjectsDirectory = Path.Combine(GameDirectory, "ModAPI", "Projects");
+                if (!Directory.Exists(modProjectsDirectory))
+                    Directory.CreateDirectory(modProjectsDirectory);
 
-            var modProjectsFolders = Directory.GetDirectories(modProjectsDirectory);
-            foreach (var modProjectFolder in modProjectsFolders)
-            {
-                try
+                var modProjectsFolders = Directory.GetDirectories(modProjectsDirectory);
+                foreach (var modProjectFolder in modProjectsFolders)
                 {
-                    modProjects.Add(new ModProject.ModProject(this, modProjectFolder));
+                    try
+                    {
+                        modProjects.Add(new ModProject.ModProject(this, modProjectFolder));
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.Error(e, "Error while loading project at " + modProjectFolder);
+                    }
                 }
-                catch (Exception e)
-                {
-                    Logger.Error(e, "Error while loading project at " + modProjectFolder);
-                }
-            }
 
-            ModProjects = modProjects;
-            var modsDirectory = Path.Combine(GameDirectory, "ModAPI", "Mods");
-            if (!Directory.Exists(modsDirectory))
-                Directory.CreateDirectory(modsDirectory);
-            var modFiles = Directory.GetFiles(modsDirectory);
-            var mods = new ObservableCollection<Mod>();
-            foreach (var modFile in modFiles)
-            {
-                var mod = CreateMod(modFile);
-                if (mod != null)
-                    mods.Add(mod);
+                ModProjects = modProjects;
+                var modsDirectory = Path.Combine(GameDirectory, "ModAPI", "Mods");
+                if (!Directory.Exists(modsDirectory))
+                    Directory.CreateDirectory(modsDirectory);
+                var modFiles = Directory.GetFiles(modsDirectory);
+                var mods = new ObservableCollection<Mod>();
+                foreach (var modFile in modFiles)
+                {
+                    var mod = CreateMod(modFile);
+                    if (mod != null)
+                        mods.Add(mod);
+                }
+                Mods = mods;
+
+                RegisterWatchers();
+                Logger.Debug("Game loaded successfully!");
             }
-            Mods = mods;
-            
-            RegisterWatchers();
-            Logger.Debug("Game loaded successfully!");
+            catch (Exception ex)
+            {
+                Logger.Warn(ex, "Error while setting directory");
+                var autoPath = GameConfiguration.FindGamePath();
+                if (autoPath != null && directory != autoPath)
+                    GameDirectory = autoPath;
+                else throw;
+            }
         }
 
         public Mod CreateMod(string fileName)
@@ -473,7 +510,7 @@ namespace ModAPI.ViewModels
             ManagedLibraries = managedLibraries;
         }
 
-        private void FindGame(string gameDirectory, string gameName)
+        private bool FindGame(string gameDirectory, string gameName)
         {
             var dataDirectory = new DirectoryInfo(Path.Combine(Path.GetFullPath(gameDirectory), gameName + "_Data"));
             var managedDirectory = new DirectoryInfo(Path.Combine(dataDirectory.FullName, "Managed"));
@@ -481,7 +518,9 @@ namespace ModAPI.ViewModels
             {
                 DataDirectory = dataDirectory.FullName;
                 ManagedDirectory = managedDirectory.FullName;
+                return true;
             }
+            return false;
         }
     }
 }

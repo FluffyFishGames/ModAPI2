@@ -25,6 +25,8 @@ namespace ModAPI.ViewModels
             }
             if (page != this)
                 this.IsActive = false;
+            if (page is Game g)
+                g.Load();
             Page = page;
         }
 

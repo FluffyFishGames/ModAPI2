@@ -12,5 +12,6 @@
 		<StyleInclude Source="/Styles/SidebarItem.axaml" />
 		<StyleInclude Source="/Styles/TabItem.axaml" />
 		<StyleInclude Source="/Styles/Inputs.axaml" />
+		<StyleInclude Source="avares://AvaloniaProgressRing/Styles/ProgressRing.xaml"/>
 	</Application.Styles>
 </Application>

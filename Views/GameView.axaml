@@ -5,39 +5,55 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
 			 xmlns:comps="using:ModAPI.Components"
 			 xmlns:material="using:Material.Icons.Avalonia"
+			 xmlns:progRing="clr-namespace:AvaloniaProgressRing;assembly=AvaloniaProgressRing"
              x:Class="ModAPI.Views.GameView">
 	<Grid>
-		<Grid.RowDefinitions>
-			<RowDefinition Height="Auto" />
-			<RowDefinition Height="*" />
-			<RowDefinition Height="50" />
-		</Grid.RowDefinitions>
-		<StackPanel Grid.Row="0" Orientation="Vertical" HorizontalAlignment="Stretch">
-			<Border Classes="Banner">
-				<Border.Background>
-					<ImageBrush Source="{Binding Banner}" Stretch="UniformToFill" />
-				</Border.Background>
-			</Border>
-			<Border Classes="TabBar">
-				<ItemsControl Items="{Binding Tabs}">
-					<ItemsControl.ItemsPanel>
-						<ItemsPanelTemplate>
-							<StackPanel Orientation="Horizontal"/>
-						</ItemsPanelTemplate>
-					</ItemsControl.ItemsPanel>
-					<ItemsControl.ItemTemplate>
-						<DataTemplate>
-							<comps:TabItem IsActive="{Binding IsActive}" DisplayName="{Binding DisplayName}" ImageIcon="{Binding ImageIcon}" MaterialIcon="{Binding MaterialIcon}" />
-						</DataTemplate>
-					</ItemsControl.ItemTemplate>
-				</ItemsControl>
-			</Border>
-		</StackPanel>
-		<ContentControl Grid.Row="1" Content="{Binding Page}" />
-		<StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Grid.Row="2">
-			<Button Classes="Green" x:Name="PatchGameButton">
-				<TextBlock Text="Patch game" />
-			</Button>
-		</StackPanel>
+		<Grid Classes="Box" IsVisible="{Binding !Loaded}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+
+			<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+				<progRing:ProgressRing Width="30"
+					Height="30"
+					IsActive="True"
+					Foreground="White"
+					VerticalAlignment="Center"
+					Margin="0,5,0,0"/>
+				<TextBlock Text="Loading" FontSize="20" FontWeight="Bold" VerticalAlignment="Center" Margin="10,0,0,0" />
+			</StackPanel>
+		</Grid>
+
+		<Grid IsVisible="{Binding Loaded}">
+			<Grid.RowDefinitions>
+				<RowDefinition Height="Auto" />
+				<RowDefinition Height="*" />
+				<RowDefinition Height="50" />
+			</Grid.RowDefinitions>
+			<StackPanel Grid.Row="0" Orientation="Vertical" HorizontalAlignment="Stretch">
+				<Border Classes="Banner">
+					<Border.Background>
+						<ImageBrush Source="{Binding Banner}" Stretch="UniformToFill" />
+					</Border.Background>
+				</Border>
+				<Border Classes="TabBar">
+					<ItemsControl Items="{Binding Tabs}">
+						<ItemsControl.ItemsPanel>
+							<ItemsPanelTemplate>
+								<StackPanel Orientation="Horizontal"/>
+							</ItemsPanelTemplate>
+						</ItemsControl.ItemsPanel>
+						<ItemsControl.ItemTemplate>
+							<DataTemplate>
+								<comps:TabItem IsActive="{Binding IsActive}" DisplayName="{Binding DisplayName}" ImageIcon="{Binding ImageIcon}" MaterialIcon="{Binding MaterialIcon}" />
+							</DataTemplate>
+						</ItemsControl.ItemTemplate>
+					</ItemsControl>
+				</Border>
+			</StackPanel>
+			<ContentControl Grid.Row="1" Content="{Binding Page}" />
+			<StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Grid.Row="2">
+				<Button Classes="Green" x:Name="PatchGameButton">
+					<TextBlock Text="Patch game" />
+				</Button>
+			</StackPanel>
+		</Grid>
 	</Grid>
 </UserControl>

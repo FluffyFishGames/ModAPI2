@@ -1,7 +1,7 @@
 ﻿{
   "SunHaven": {
     "name": "Sun Haven",
-    "executables": ["Sun Haven"],
+    "executeables": [ "Sun Haven" ],
     "type": "Unity",
     "steam": {
       "app_id": "1432860"
@@ -18,7 +18,7 @@
   "CoreKeeper": {
     "name": "Core Keeper",
     "type": "Unity",
-    "executeables": ["CoreKeeper"],
+    "executeables": [ "CoreKeeper" ],
     "steam": {
       "app_id": "1621690"
     }
@@ -26,7 +26,7 @@
   "MyTimeAtSandrock": {
     "name": "My Time at Sandrock",
     "type": "Unity",
-    "executeables": ["Sandrock"],
+    "executeables": [ "Sandrock" ],
     "steam": {
       "app_id": "1084600"
     }
@@ -34,7 +34,7 @@
   "HokkoLife": {
     "name": "Hokko Life",
     "type": "Unity",
-    "executeables": ["Hokko Life"],
+    "executeables": [ "Hokko Life" ],
     "steam": {
       "app_id": "824000"
     }
