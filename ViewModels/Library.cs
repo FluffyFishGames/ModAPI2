@@ -6,6 +6,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using ModAPI.Data;
+using ModAPI.Utils;
 using Mono.Cecil;
 using ReactiveUI;
 
@@ -31,11 +32,11 @@ namespace ModAPI.ViewModels
         private Game _Game;
         public Game Game { get => _Game; set => this.RaiseAndSetIfChanged<Library, Game>(ref _Game, value, "Game"); }
 
-        private ModInformation _ModInformation;
-        public ModInformation ModInformation { get => _ModInformation; set => this.RaiseAndSetIfChanged<Library, ModInformation>(ref _ModInformation, value, "ModInformation"); }
+        private ModLibraryInformation _ModInformation;
+        public ModLibraryInformation ModInformation { get => _ModInformation; set => this.RaiseAndSetIfChanged<Library, ModLibraryInformation>(ref _ModInformation, value, "ModInformation"); }
 
         
-        public AssemblyDefinition LoadAssembly()
+        public AssemblyDefinition LoadAssembly(ReadingMode readingMode = ReadingMode.Deferred)
         {
             AssemblyDefinition assembly = null;
             if (!System.IO.File.Exists(File))
@@ -44,7 +45,8 @@ namespace ModAPI.ViewModels
             resolver.AddSearchDirectory(File);
             assembly = AssemblyDefinition.ReadAssembly(File, new ReaderParameters()
             {
-                AssemblyResolver = resolver
+                AssemblyResolver = resolver,
+                ReadingMode = readingMode
             });
             return assembly;
         }
@@ -69,7 +71,7 @@ namespace ModAPI.ViewModels
                     foreach (var resource in assembly.MainModule.Resources)
                     {
                         if (resource.ResourceType == ResourceType.Embedded && resource.Name == "ModInformation" && resource is EmbeddedResource embedded)
-                            ModInformation = new ModInformation(embedded.GetResourceData());
+                            ModInformation = new ModLibraryInformation(embedded.GetResourceData());
                         if (resource.ResourceType == ResourceType.Embedded && resource.Name == "ModConfiguration")
                             _IsMod = true;
                     }
@@ -103,7 +105,7 @@ namespace ModAPI.ViewModels
                 {
                     if (resource.ResourceType == ResourceType.Embedded && resource.Name == "ModInformation" && resource is EmbeddedResource embedded)
                     {
-                        _ModInformation = new ModInformation(embedded.GetResourceData());
+                        _ModInformation = new ModLibraryInformation(embedded.GetResourceData());
                         return;
                     }
                 }
@@ -118,22 +120,14 @@ namespace ModAPI.ViewModels
         {
         }
 
+        const int HashParts = 2;
         public string GetOriginalChecksum()
         {
             if (ModInformation != null)
                 return ModInformation.OriginalChecksum;
 
-            using (SHA256 sha256Hash = SHA256.Create())
-            {
-                byte[] data = sha256Hash.ComputeHash(new FileInfo(File).OpenRead());
-                var stringBuilder = new StringBuilder();
-                for (int i = 0; i < data.Length; i++)
-                {
-                    stringBuilder.Append(data[i].ToString("x2"));
-                }
-                var hash = stringBuilder.ToString();
-                return hash;
-            }
+            byte[] data = System.IO.File.ReadAllBytes(File);
+            return Utils.Checksum.Create(data);
         }
     }
 }

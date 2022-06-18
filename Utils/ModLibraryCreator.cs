@@ -226,7 +226,7 @@ namespace ModAPI.Utils
                 done = 0f;
                 foreach (var assembly in context.Assemblies)
                 {
-                    var modInformation = new ModInformation();
+                    var modInformation = new ModLibraryInformation();
                     modInformation.OriginalChecksum = context.Checksums[assembly.Value.Name.Name];
                     assembly.Value.MainModule.Resources.Add(new EmbeddedResource("ModInformation", ManifestResourceAttributes.Public, System.Text.Encoding.UTF8.GetBytes(modInformation.ToJSON().ToString())));
                     assembly.Value.MainModule.AssemblyReferences.Add(new AssemblyNameReference("BaseModLib", Data.ModAPI.BaseModLib.Name.Version));
@@ -237,7 +237,7 @@ namespace ModAPI.Utils
 
                 foreach (var assembly in context.SystemAssemblies)
                 {
-                    var modInformation = new ModInformation();
+                    var modInformation = new ModLibraryInformation();
                     modInformation.OriginalChecksum = context.Checksums[assembly.Value.Name.Name];
                     assembly.Value.MainModule.Resources.Add(new EmbeddedResource("ModInformation", ManifestResourceAttributes.Public, System.Text.Encoding.UTF8.GetBytes(modInformation.ToJSON().ToString())));
                     assembly.Value.MainModule.AssemblyReferences.Add(new AssemblyNameReference("BaseModLib", Data.ModAPI.BaseModLib.Name.Version));

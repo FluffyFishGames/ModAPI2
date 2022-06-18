@@ -98,13 +98,9 @@ namespace ModAPI.ViewModels
                         }
                         else
                         {
-                            byte[] data = sha256Hash.ComputeHash(backupFile.OpenRead());
-                            var stringBuilder = new StringBuilder();
-                            for (int i = 0; i < data.Length; i++)
-                            {
-                                stringBuilder.Append(data[i].ToString("x2"));
-                            }
-                            var hash = stringBuilder.ToString();
+                            byte[] data = System.IO.File.ReadAllBytes(backupFile.FullName);
+                            var hash =  Utils.Checksum.Create(data);
+                            
                             Logger.Debug("Hash of backup of library \"" + Path.GetFileName(library.File) + "\": " + hash);
                             var originalHash = library.GetOriginalChecksum();
                             Logger.Debug("Original hash of library \"" + Path.GetFileName(library.File) + "\": " + originalHash);

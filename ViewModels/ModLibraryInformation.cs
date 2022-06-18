@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace ModAPI.ViewModels
 {
-    public class ModInformation
+    public class ModLibraryInformation
     {
-        private static NLog.Logger Logger = NLog.LogManager.GetLogger("ModInformation");
+        private static NLog.Logger Logger = NLog.LogManager.GetLogger("ModLibraryInformation");
         private string _OriginalChecksum = null;
         public string OriginalChecksum
         {
@@ -22,28 +22,43 @@ namespace ModAPI.ViewModels
                 _OriginalChecksum = value;
             }
         }
+        private int _OriginalFileSize = 0;
+        public int OriginalFileSize
+        {
+            get
+            {
+                return _OriginalFileSize;
+            }
+            set
+            {
+                _OriginalFileSize= value;
+            }
+        }
 
-        public ModInformation(byte[] data)
+
+        public ModLibraryInformation(byte[] data)
         {
             this.FromJSON(JObject.Parse(System.Text.Encoding.UTF8.GetString(data)));
         }
 
-        public ModInformation(string data)
+        public ModLibraryInformation(string data)
         {
             this.FromJSON(JObject.Parse(data));
         }
 
-        public ModInformation(JObject data)
+        public ModLibraryInformation(JObject data)
         {
             this.FromJSON(data);
         }
 
-        public ModInformation() { }
+        public ModLibraryInformation() { }
 
         public void FromJSON(JObject data)
         {
             if (data.ContainsKey("OriginalChecksum"))
                 OriginalChecksum = data["OriginalChecksum"].ToString();
+            if (data.ContainsKey("OriginalFileSize") && int.TryParse(data["OriginalFileSize"].ToString(), out var fileSize))
+                OriginalFileSize = fileSize;
         }
 
         public JObject ToJSON()
@@ -51,6 +66,7 @@ namespace ModAPI.ViewModels
             var ret = new JObject();
             if (OriginalChecksum != null)
                 ret["OriginalChecksum"] = OriginalChecksum;
+            ret["OriginalFileSize"] = OriginalFileSize;
             return ret;
         }
     }
