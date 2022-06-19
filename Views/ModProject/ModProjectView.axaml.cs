@@ -49,7 +49,8 @@ namespace ModAPI.Views.ModProject
         {
             if (this.DataContext is ViewModels.ModProject.ModProject modProject)
             {
-                ModCreator.Execute(new ModCreator.Input() { Project = modProject, ProgressHandler = new ProgressHandler() });
+                var creator = new ModCreator(modProject, new ProgressHandler());
+                creator.Execute();
             }
         }
 

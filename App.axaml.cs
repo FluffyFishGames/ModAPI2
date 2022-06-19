@@ -30,7 +30,7 @@ namespace ModAPI
                     context.Games.Add(g.Value);
                 desktop.MainWindow = new Views.MainWindow
                 {
-                    DataContext = context,
+                    DataContext = context
                 };
             }
 
