@@ -122,6 +122,14 @@ namespace ModAPI.ViewModels
                 else throw;
             }
         }
+
+        private static List<string> UnityLibraries = new List<string>() { 
+            "Assembly-CSharp.dll",
+            "Assembly-CSharp-firstpass.dll",
+            "Unity.TextMeshPro.dll",
+            "mscorlib.dll"
+        };
+
         private void FindManagedLibraries()
         {
             var managedLibraries = new ObservableCollection<Library>();
@@ -130,13 +138,14 @@ namespace ModAPI.ViewModels
                 var files = Directory.GetFiles(ManagedDirectory);
                 foreach (var file in files)
                 {
-                    if (Path.GetExtension(file).ToLowerInvariant() == ".dll")
-                    {
+                    var fileName = Path.GetFileName(file);
+                    if (Path.GetExtension(file).ToLowerInvariant() == ".dll" && UnityLibraries.Contains(fileName) || GameConfiguration.IsInLibraries(fileName))
+                    { 
                         var assemblyName = Path.GetFileNameWithoutExtension(file);
-                        if (!ForbiddenAssemblies.Contains(assemblyName)) // || assemblyName.StartsWith("Unity")
-                        {
-                            managedLibraries.Add(new Library(this, Path.Combine(ManagedDirectory, assemblyName + ".dll")));
-                        }
+//                        if (!ForbiddenAssemblies.Contains(assemblyName)) // || assemblyName.StartsWith("Unity")
+//                        {
+                        managedLibraries.Add(new Library(this, Path.Combine(ManagedDirectory, assemblyName + ".dll")));
+//                        }
                     }
                 }
             }
